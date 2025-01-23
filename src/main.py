@@ -29,5 +29,5 @@ with open('config.yml', encoding='utf-8') as f:
 logging.info('启动！')
 try:
     viewer = Viewer(**config)
-except BaseException:
+except:
     logging.critical(traceback.format_exc())

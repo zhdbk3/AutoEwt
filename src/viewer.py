@@ -4,6 +4,7 @@
 
 import time
 import logging
+import traceback
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -80,7 +81,19 @@ class Viewer:
         logging.info(f'该天还剩 {len(btns_go)} 节课需学习')
         for i in range(len(btns_go)):
             logging.info(f'第 {i + 1} / {len(btns_go)} 节课')
-            self.finish_a_lesson(btns_go[i])
+            try:
+                self.finish_a_lesson(btns_go[i])
+            except:
+                # 出现特殊情况，则跳过，不影响其他课程的完成
+                # 并不是所有课都是视频，还有 FM、试卷等
+                # 对于 FM，只要点进去了就是完成
+                # 对于试卷，留给人来处理
+                logging.error(traceback.format_exc())
+                # 关闭页面，返回首页
+                handles = self.driver.window_handles
+                self.driver.close()
+                self.driver.switch_to.window(handles[0])
+                time.sleep(1)
 
     def finish_a_lesson(self, btn: WebElement) -> None:
         """
