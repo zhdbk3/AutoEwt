@@ -6,16 +6,16 @@ import time
 import logging
 
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.common.exceptions import NoSuchElementException
 
 
 class Viewer:
-    def __init__(self, driver_path: str, username: str, password: str):
+    def __init__(self, browser: str, driver_path: str, username: str, password: str):
         """
-        一个自动刷课程序
+        自动刷课程序的主体
+        :param browser: 浏览器名称
         :param driver_path: 浏览器驱动路径
         :param username: 用户名
         :param password: 密码
@@ -23,7 +23,9 @@ class Viewer:
         self.username = username
         self.password = password
 
-        self.driver = webdriver.Chrome(service=Service(driver_path))
+        self.driver: webdriver.Chrome = getattr(webdriver, browser)(
+            service=getattr(webdriver, browser.lower()).service.Service(driver_path)
+        )
         self.driver.maximize_window()
         self.driver.get('https://www.ewt360.com')
         self.driver.implicitly_wait(10)
