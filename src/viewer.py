@@ -3,19 +3,13 @@
 #
 
 import time
-import datetime
+import logging
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.common.exceptions import NoSuchElementException
-
-
-def log(*args) -> None:
-    """带时间的 log"""
-    t = datetime.datetime.now().strftime('[%Y-%m-%d %H:%M:%S]')
-    print(t, *args)
 
 
 class Viewer:
@@ -39,13 +33,13 @@ class Viewer:
         self.get_days_list()
 
     def login(self) -> None:
-        log('登录账号……')
+        logging.info('登录账号……')
         self.driver.find_element(By.ID, 'login__password_userName').send_keys(self.username)
         self.driver.find_element(By.ID, 'login__password_password').send_keys(self.password)
         self.driver.find_element(By.CLASS_NAME, 'ant-btn-block').submit()
 
     def my_holiday(self) -> None:
-        log('进入我的假期……')
+        logging.info('进入我的假期……')
         self.driver.find_element(By.CLASS_NAME, 'myHoliday').click()
         # 关闭第一页
         handles = self.driver.window_handles
@@ -67,9 +61,9 @@ class Viewer:
     def get_days_list(self) -> None:
         """获取所有天"""
         days = self.driver.find_elements(By.CLASS_NAME, 'day-card-container-19key')
-        log('一共有', len(days), '天的课程')
+        logging.info(f'一共有 {len(days)} 天的课程')
         for i in range(len(days)):
-            log('第', i + 1, '/', len(days), '天')
+            logging.info(f'第 {i + 1} / {len(days)} 天')
             self.finish_a_day(days[i])
 
     def finish_a_day(self, day: WebElement) -> None:
@@ -81,9 +75,9 @@ class Viewer:
         self.click(day)
         time.sleep(1)
         btns_go = self.driver.find_elements(By.CLASS_NAME, 'operate-btn-2TCuM')
-        log('该天还剩', len(btns_go), '节课需学习')
+        logging.info(f'该天还剩 {len(btns_go)} 节课需学习')
         for i in range(len(btns_go)):
-            log('第', i + 1, '/', len(btns_go), '节课')
+            logging.info(f'第 {i + 1} / {len(btns_go)} 节课')
             self.finish_a_lesson(btns_go[i])
 
     def finish_a_lesson(self, btn: WebElement) -> None:
@@ -104,13 +98,13 @@ class Viewer:
             # 看看你在不在认真听课~
             try:
                 self.driver.find_element(By.XPATH, "//*[contains(text(), '点击通过检查')]").click()
-                log('点击了检查点')
+                logging.info('点击了检查点')
             except NoSuchElementException:
                 pass
 
             time.sleep(1)
 
-        log('好诶~完成啦~')
+        logging.info('好诶~完成啦~')
         # 关闭页面，返回首页
         self.driver.close()
         self.driver.switch_to.window(handles[0])

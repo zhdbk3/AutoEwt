@@ -1,3 +1,5 @@
+name: 打包为可执行文件
+
 on:
   workflow_dispatch:
     inputs:
@@ -35,7 +37,7 @@ jobs:
         with:
           nuitka-version: main
           script-name: src/main.py
-          standalone: true
+          mode: standalone
           output-file: AutoEwt
           file-version: ${{ github.event.inputs.version }}
           product-version: ${{ github.event.inputs.version }}
