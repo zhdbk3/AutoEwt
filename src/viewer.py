@@ -111,6 +111,7 @@ class Viewer:
 
         # 有时需要手动点播放
         try:
+            time.sleep(3)
             self.driver.find_element(By.CLASS_NAME, 'vjs-big-play-button').click()
             logging.info('手动开始播放视频')
         except:
