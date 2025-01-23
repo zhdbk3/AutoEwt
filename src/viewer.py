@@ -108,6 +108,14 @@ class Viewer:
         self.driver.switch_to.window(handles[1])
 
         video = self.driver.find_element(By.TAG_NAME, 'video')
+
+        # 有时需要手动点播放
+        try:
+            self.driver.find_element(By.CLASS_NAME, 'vjs-big-play-button').click()
+            logging.info('手动开始播放视频')
+        except:
+            pass
+
         while not video.get_attribute('ended'):
             # 老师敲黑板，帮你暂停一下
             # 看看你在不在认真听课~
