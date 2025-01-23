@@ -6,6 +6,7 @@ import os
 import sys
 import datetime
 import logging
+import traceback
 
 import yaml
 from viewer import Viewer
@@ -38,5 +39,5 @@ else:
 logging.info('启动！')
 try:
     viewer = Viewer(**config)
-except BaseException as e:
-    logging.critical(e)
+except BaseException:
+    logging.critical(traceback.format_exc())

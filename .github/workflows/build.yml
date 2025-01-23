@@ -42,7 +42,7 @@ jobs:
           file-version: ${{ github.event.inputs.version }}
           product-version: ${{ github.event.inputs.version }}
           copyright: "Copyright MC着火的冰块. All right reserved."
-          include-data-files: src/config.yml.default=.
+          include-data-files: src/config.yml.default=./config.yml.default
 
       - name: 上传工件
         uses: actions/upload-artifact@v4
