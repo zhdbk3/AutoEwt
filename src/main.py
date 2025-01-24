@@ -31,6 +31,8 @@ with open('config.yml', encoding='utf-8') as f:
     logging.info('成功读取到配置文件')
 
 logging.info('启动！')
+
+num_abnormal_collapse = 0
 while True:
     try:
         viewer = Viewer(**config)
@@ -40,4 +42,8 @@ while True:
         logging.info('这是由于页面自动刷新导致的元素查找错误，是正常现象')
     except:
         logging.critical(traceback.format_exc())
-        logging.critical('请报告 bug')
+        logging.critical('程序异常崩溃，请报告 bug，正在自动重启……')
+        num_abnormal_collapse += 1
+        if num_abnormal_collapse >= 5:
+            logging.critical('异常崩溃次数过多，已停止程序')
+            break
