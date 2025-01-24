@@ -1,0 +1,48 @@
+name: 在工作流上运行
+
+on:
+  workflow_dispatch
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 签出存储库
+        uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements*.txt
+
+      - name: 安装依赖项
+        run: |
+          pip install -r requirements.txt
+
+      - name: 安装 Chrome 及其驱动
+        run: |
+
+
+      - name: 写入配置文件
+        run: |
+          cd src
+          echo "browser: Chrome" > config.yml
+          echo "driver_path: chromedriver 的路径" > config.yml
+          echo "username: ${{ secrets.USERNAME }}" > config.yml
+          echo "password: ${{ secrets.PASSWORD }}" > config.yml
+
+      - name: 运行程序
+        run: |
+          python main.py
+
+      - name: 上传日志
+        uses: actions/upload-artifact@v4
+        with:
+          name: log
+          path: |
+            log/*

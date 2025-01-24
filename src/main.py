@@ -26,6 +26,8 @@ logging.basicConfig(
 
 with open('config.yml', encoding='utf-8') as f:
     config = yaml.load(f, yaml.FullLoader)
+    # 密码可能是纯数字
+    config['password'] = str(config['password'])
     logging.info('成功读取到配置文件')
 
 logging.info('启动！')
