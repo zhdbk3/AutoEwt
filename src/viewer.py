@@ -89,6 +89,8 @@ class Viewer:
                 # 对于 FM，只要点进去了就是完成
                 # 对于试卷，留给人来处理
                 logging.error(traceback.format_exc())
+                logging.warning('该课已跳过')
+                logging.warning('如果这是视频课，请报告 bug')
                 # 关闭页面，返回首页
                 handles = self.driver.window_handles
                 self.driver.close()

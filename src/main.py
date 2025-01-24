@@ -8,6 +8,8 @@ import logging
 import traceback
 
 import yaml
+from selenium.common.exceptions import StaleElementReferenceException
+
 from viewer import Viewer
 
 # 如果不存在 log 文件夹，则创建
@@ -27,7 +29,13 @@ with open('config.yml', encoding='utf-8') as f:
     logging.info('成功读取到配置文件')
 
 logging.info('启动！')
-try:
-    viewer = Viewer(**config)
-except:
-    logging.critical(traceback.format_exc())
+while True:
+    try:
+        viewer = Viewer(**config)
+    except StaleElementReferenceException:
+        logging.error(traceback.format_exc())
+        logging.info('程序崩溃，正在自动重启……')
+        logging.info('这是由于页面自动刷新导致的元素查找错误，是正常现象')
+    except:
+        logging.critical(traceback.format_exc())
+        logging.critical('请报告 bug')
