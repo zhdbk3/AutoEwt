@@ -75,8 +75,7 @@ class Viewer:
         for i in range(len(btns_go)):
             logging.info(f'第 {i + 1} / {len(btns_go)} 节课')
             try:
-                if i == len(btns_go) - 1:
-                    self.finish_a_lesson(btns_go[i])
+                self.finish_a_lesson(btns_go[i])
             except:
                 # 出现特殊情况，则跳过，不影响其他课程的完成
                 # 并不是所有课都是视频，还有 FM、试卷等
