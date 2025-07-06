@@ -13,7 +13,7 @@ from selenium.common.exceptions import NoSuchElementException
 
 
 class Viewer:
-    def __init__(self, browser: str, driver_path: str, username: str, password: str, list_url: str):
+    def __init__(self, browser: str, driver_path: str, username: str, password: str, list_url: str, mute_audio: bool):
         """
         自动刷课程序的主体
         :param browser: 浏览器名称
@@ -21,12 +21,17 @@ class Viewer:
         :param username: 用户名
         :param password: 密码
         :param list_url: 任务列表页面的 URL
+        :param mute_audio: 是否静音
         """
         self.username = username
         self.password = password
 
+        options = getattr(webdriver, browser.lower()).options.Options()
+        if mute_audio:
+            options.add_argument("--mute-audio")
         self.driver: webdriver.Edge = getattr(webdriver, browser)(
-            service=getattr(webdriver, browser.lower()).service.Service(driver_path)
+            service=getattr(webdriver, browser.lower()).service.Service(driver_path),
+            options=options
         )
         self.driver.maximize_window()
         self.driver.get(list_url)
