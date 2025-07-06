@@ -5,7 +5,7 @@
 - 本软件遵循 [GNU General Public License v3.0](LICENSE) 开源许可证。
 - **本软件的目的仅在研究 `Python` 技术，您不得使用它来应付学校的任务，或是做其他违反纪律、法律的事。**
 - **如果您擅自使用本软件做不当的事，产生的任何后果和影响均由您自己承担，与我们无关。**
-- **开始使用本软件即代表您同意上述协议和声明，同意 [MC着火的冰块](https://space.bilibili.com/551409211)
+- **开始使用本软件即代表您同意上述协议和声明，同意 [着火的冰块nya](https://space.bilibili.com/551409211)
   及其他开发者不为您的行为承担任何责任。**
 
 ## 如何使用
@@ -32,7 +32,7 @@
 - WebKitGTK
 - WPEWebKit
 
-推荐使用 **Chrome**，因为我们的开发就在 Chrome 上进行。别的浏览器不保证能用。
+推荐使用 **Edge**，因为我们的开发就在 Edge 上进行。别的浏览器不保证能用。
 
 ### 2. 修改配置文件
 
@@ -44,6 +44,7 @@ browser: 浏览器名称（首字母大写），如 Chrome, Edge 等
 driver_path: 浏览器驱动路径
 username: 用户名
 password: 密码
+list_url: 课程列表页面的链接
 ```
 
 ### 3. 启动！
@@ -52,5 +53,5 @@ password: 密码
 
 ## 开发环境
 
-- Python 3.11
-- Chrome
+- Python 3.12
+- Edge 138

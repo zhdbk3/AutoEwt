@@ -3,3 +3,4 @@ browser: 浏览器名称（首字母大写），如 Chrome, Edge 等
 driver_path: 浏览器驱动路径
 username: 用户名
 password: 密码
+list_url: 课程列表页面的链接

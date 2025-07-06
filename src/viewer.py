@@ -1,5 +1,5 @@
 #
-# Created by MC着火的冰块(zhdbk3) on 2025/1/23
+# Created by 着火的冰块nya (zhdbk3) on 2025/1/23
 #
 
 import time
@@ -13,26 +13,26 @@ from selenium.common.exceptions import NoSuchElementException
 
 
 class Viewer:
-    def __init__(self, browser: str, driver_path: str, username: str, password: str):
+    def __init__(self, browser: str, driver_path: str, username: str, password: str, list_url: str):
         """
         自动刷课程序的主体
         :param browser: 浏览器名称
         :param driver_path: 浏览器驱动路径
         :param username: 用户名
         :param password: 密码
+        :param list_url: 任务列表页面的 URL
         """
         self.username = username
         self.password = password
 
-        self.driver: webdriver.Chrome = getattr(webdriver, browser)(
+        self.driver: webdriver.Edge = getattr(webdriver, browser)(
             service=getattr(webdriver, browser.lower()).service.Service(driver_path)
         )
         self.driver.maximize_window()
-        self.driver.get('https://www.ewt360.com')
+        self.driver.get(list_url)
         self.driver.implicitly_wait(10)
 
         self.login()
-        self.my_holiday()
         self.get_days_list()
 
     def login(self) -> None:
@@ -40,17 +40,6 @@ class Viewer:
         self.driver.find_element(By.ID, 'login__password_userName').send_keys(self.username)
         self.driver.find_element(By.ID, 'login__password_password').send_keys(self.password)
         self.driver.find_element(By.CLASS_NAME, 'ant-btn-block').submit()
-
-    def my_holiday(self) -> None:
-        logging.info('进入我的假期……')
-        self.driver.find_element(By.CLASS_NAME, 'myHoliday').click()
-        # 关闭第一页
-        handles = self.driver.window_handles
-        self.driver.switch_to.window(handles[0])
-        self.driver.close()
-        self.driver.switch_to.window(handles[1])
-        # 即刻开启
-        self.driver.find_element(By.CLASS_NAME, 'ant-btn-primary').click()
 
     def click(self, btn: WebElement) -> None:
         """
@@ -63,10 +52,10 @@ class Viewer:
 
     def get_days_list(self) -> None:
         """获取所有天"""
-        days = self.driver.find_elements(By.CLASS_NAME, 'day-card-container-19key')
+        days = self.driver.find_elements(By.CSS_SELECTOR, 'li[data-active="true"], li[data-active="false"]')
         logging.info(f'一共有 {len(days)} 天的课程')
         for i in range(len(days)):
-            logging.info(f'第 {i + 1} / {len(days)} 天')
+            logging.info(f'================ 第 {i + 1} / {len(days)} 天 ================')
             self.finish_a_day(days[i])
 
     def finish_a_day(self, day: WebElement) -> None:
@@ -77,12 +66,17 @@ class Viewer:
         """
         self.click(day)
         time.sleep(1)
-        btns_go = self.driver.find_elements(By.CLASS_NAME, 'operate-btn-2TCuM')
+        btns_go = self.driver.find_elements(
+            By.XPATH,
+            "//div[contains(@class, 'btn-3dDLy') "
+            "and .//text()[contains(., '学')] "
+            "and not(.//text()[contains(., '已学完')])]")
         logging.info(f'该天还剩 {len(btns_go)} 节课需学习')
         for i in range(len(btns_go)):
             logging.info(f'第 {i + 1} / {len(btns_go)} 节课')
             try:
-                self.finish_a_lesson(btns_go[i])
+                if i == len(btns_go) - 1:
+                    self.finish_a_lesson(btns_go[i])
             except:
                 # 出现特殊情况，则跳过，不影响其他课程的完成
                 # 并不是所有课都是视频，还有 FM、试卷等
@@ -100,7 +94,7 @@ class Viewer:
     def finish_a_lesson(self, btn: WebElement) -> None:
         """
         完成一节课，应对各种突发情况
-        :param btn: “去学习”按钮
+        :param btn: “学”按钮
         :return: None
         """
         self.click(btn)

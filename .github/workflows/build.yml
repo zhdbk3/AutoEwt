@@ -41,7 +41,7 @@ jobs:
           output-file: AutoEwt
           file-version: ${{ github.event.inputs.version }}
           product-version: ${{ github.event.inputs.version }}
-          copyright: "Copyright MC着火的冰块. All right reserved."
+          copyright: "Copyright 着火的冰块nya. All right reserved."
           include-data-files: src/config.yml.default=./config.yml.default
 
       - name: 上传工件
