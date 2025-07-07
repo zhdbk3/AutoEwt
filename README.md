@@ -45,7 +45,7 @@ driver_path: 浏览器驱动路径
 username: 用户名
 password: 密码
 list_url: 课程列表页面的链接
-mute_audio: true  # 是否静音（填 true/false）
+options: --mute-audio  # 浏览器启动时的参数，这里给了个静音
 ```
 
 ### 3. 启动！
