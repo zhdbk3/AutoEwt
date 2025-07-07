@@ -35,7 +35,7 @@ logging.info('启动！')
 num_abnormal_collapse = 0
 while True:
     try:
-        viewer = Viewer(**config)
+        viewer = Viewer(config)
     except StaleElementReferenceException:
         logging.error(traceback.format_exc())
         logging.info('程序崩溃，正在自动重启……')

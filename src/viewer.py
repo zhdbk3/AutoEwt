@@ -13,28 +13,24 @@ from selenium.common.exceptions import NoSuchElementException
 
 
 class Viewer:
-    def __init__(self, browser: str, driver_path: str, username: str, password: str, list_url: str, mute_audio: bool):
+    def __init__(self, config: dict):
         """
         自动刷课程序的主体
-        :param browser: 浏览器名称
-        :param driver_path: 浏览器驱动路径
-        :param username: 用户名
-        :param password: 密码
-        :param list_url: 任务列表页面的 URL
-        :param mute_audio: 是否静音
+        :param config: 读取的配置文件
         """
-        self.username = username
-        self.password = password
+        self.username = config['username']
+        self.password = config['password']
+
+        browser = config['browser']
 
         options = getattr(webdriver, browser.lower()).options.Options()
-        if mute_audio:
-            options.add_argument("--mute-audio")
+        options.add_argument(config['options'])
         self.driver: webdriver.Edge = getattr(webdriver, browser)(
-            service=getattr(webdriver, browser.lower()).service.Service(driver_path),
+            service=getattr(webdriver, browser.lower()).service.Service(config['driver_path']),
             options=options
         )
         self.driver.maximize_window()
-        self.driver.get(list_url)
+        self.driver.get(config['list_url'])
         self.driver.implicitly_wait(10)
 
         self.login()
@@ -57,6 +53,7 @@ class Viewer:
 
     def get_days_list(self) -> None:
         """获取所有天"""
+        time.sleep(5)
         days = self.driver.find_elements(By.CSS_SELECTOR, 'li[data-active="true"], li[data-active="false"]')
         logging.info(f'一共有 {len(days)} 天的课程')
         for i in range(len(days)):
@@ -70,7 +67,7 @@ class Viewer:
         :return: None
         """
         self.click(day)
-        time.sleep(1)
+        time.sleep(3)
         btns_go = self.driver.find_elements(
             By.XPATH,
             "//div[contains(@class, 'btn-3dDLy') "
