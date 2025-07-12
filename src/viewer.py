@@ -7,13 +7,11 @@ import logging
 import traceback
 from typing import Literal
 import random
-import os
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.common.exceptions import NoSuchElementException
-import pyautogui
 
 
 class Viewer:
