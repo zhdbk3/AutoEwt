@@ -173,11 +173,29 @@ class Viewer:
             items = ul.find_elements(By.CSS_SELECTOR, 'li')
             # 随机选一个选项
             self.click(random.choice(items))
-            time.sleep(0.1)
+            time.sleep(0.2)
 
         time.sleep(1)
 
-        # 完成大题
-        ...
+        # # 完成大题
+        # 完成个蛋，我研究了一整天怎么上传图片，结果偶然发现其实不需要上传图片也可以自批 qwq
+        # 气笑了
+
+        # 提交
+        self.click(self.driver.find_element(By.CLASS_NAME, 'ant-btn-primary'))
+        time.sleep(1)
+        self.click(self.driver.find_element(By.CLASS_NAME, 'confirm-right'))
+        time.sleep(5)
+
+        # 自批满分（不一定有此环节）
+        n = len(self.driver.find_elements(By.CSS_SELECTOR, '.content-left-scroll > ul > li'))
+        if n != 0:
+            for i in range(n):
+                self.click(self.driver.find_element(By.CSS_SELECTOR, '.content-right-scroll > ul > li:last-child'))
+                time.sleep(2)
+            self.click(self.driver.find_element(By.CLASS_NAME, 'content-main-footer_submit_btn_full'))
+            time.sleep(1)
+            self.click(self.driver.find_element(By.CLASS_NAME, 'confirm-right'))
+            time.sleep(3)
 
         self.close_and_switch()

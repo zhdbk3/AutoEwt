@@ -1,3 +1,2 @@
 selenium
 pyyaml
-requests
