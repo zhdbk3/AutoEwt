@@ -45,7 +45,10 @@ driver_path: 浏览器驱动路径
 username: 用户名
 password: 密码
 list_url: 课程列表页面的链接
-options: --mute-audio  # 浏览器启动时的参数，这里给了个静音
+# 浏览器启动时的参数，这里给了个静音
+options: --mute-audio
+# AutoEwt 模式，选填 watch（看课）/ test（做试卷）
+mode: watch
 ```
 
 ### 3. 启动！

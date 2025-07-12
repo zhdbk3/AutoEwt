@@ -5,11 +5,15 @@
 import time
 import logging
 import traceback
+from typing import Literal
+import random
+import os
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.common.exceptions import NoSuchElementException
+import pyautogui
 
 
 class Viewer:
@@ -18,6 +22,13 @@ class Viewer:
         自动刷课程序的主体
         :param config: 读取的配置文件
         """
+        self.mode: Literal['watch', 'test'] = config['mode']
+        if self.mode not in ['watch', 'test']:
+            logging.error('mode 只能是 watch 或 test，请检查配置文件！')
+            exit(1)
+        if self.mode == 'test':
+            logging.warning('由于技术限制，请保持焦点在浏览器窗口上！')
+
         self.username = config['username']
         self.password = config['password']
 
@@ -31,10 +42,10 @@ class Viewer:
         )
         self.driver.maximize_window()
         self.driver.get(config['list_url'])
-        self.driver.implicitly_wait(10)
+        self.driver.implicitly_wait(3)
 
         self.login()
-        self.get_days_list()
+        self.finish_days_list()
 
     def login(self) -> None:
         logging.info('登录账号……')
@@ -51,46 +62,72 @@ class Viewer:
         """
         self.driver.execute_script('arguments[0].click();', btn)
 
-    def get_days_list(self) -> None:
-        """获取所有天"""
+    def finish_days_list(self) -> None:
+        """完成所有天"""
         time.sleep(5)
         days = self.driver.find_elements(By.CSS_SELECTOR, 'li[data-active="true"], li[data-active="false"]')
-        logging.info(f'一共有 {len(days)} 天的课程')
+        logging.info(f'一共有 {len(days)} 天的任务')
         for i in range(len(days)):
             logging.info(f'================ 第 {i + 1} / {len(days)} 天 ================')
             self.finish_a_day(days[i])
 
     def finish_a_day(self, day: WebElement) -> None:
         """
-        完成一天的课程
+        完成一天的任务
         :param day: 该天在网页上的标签
         :return: None
         """
         self.click(day)
-        time.sleep(3)
-        btns_go = self.driver.find_elements(
-            By.XPATH,
-            "//div[contains(@class, 'btn-3dDLy') "
-            "and .//text()[contains(., '学')] "
-            "and not(.//text()[contains(., '已学完')])]")
-        logging.info(f'该天还剩 {len(btns_go)} 节课需学习')
-        for i in range(len(btns_go)):
-            logging.info(f'第 {i + 1} / {len(btns_go)} 节课')
+        time.sleep(2)
+        if self.mode == 'watch':
+            btns = self.driver.find_elements(
+                By.XPATH,
+                "//div[contains(@class, 'btn-3dDLy') "
+                "and .//text()[contains(., '学')] "
+                "and not(.//text()[contains(., '已学完')])]")
+            unit = '节课'
+        else:
+            btns = self.driver.find_elements(
+                By.XPATH,
+                "//div[contains(@class, 'btn-3dDLy')][contains(., '测一测') or contains(., '继续答')]")
+            unit = '张试卷'
+        logging.info(f'该天还剩 {len(btns)} {unit}')
+        for i in range(len(btns)):
+            logging.info(f'第 {i + 1} / {len(btns)} {unit}')
             try:
-                self.finish_a_lesson(btns_go[i])
+                if self.mode == 'watch':
+                    self.finish_a_lesson(btns[i])
+                else:
+                    self.finist_a_test(btns[i])
             except:
-                # 出现特殊情况，则跳过，不影响其他课程的完成
-                # 并不是所有课都是视频，还有 FM、试卷等
-                # 对于 FM，只要点进去了就是完成
-                # 对于试卷，留给人来处理
+                # 似乎现在不存在这种特殊情况了，但这些逻辑还是留着吧，防止看一半程序暴毙
+                # # 出现特殊情况，则跳过，不影响其他课程的完成
+                # # 并不是所有课都是视频，还有 FM、试卷等
+                # # 对于 FM，只要点进去了就是完成
+                # # 对于试卷，留给人来处理
                 logging.error(traceback.format_exc())
                 logging.warning('该课已跳过')
                 logging.warning('如果这是视频课，请报告 bug')
                 # 关闭页面，返回首页
-                handles = self.driver.window_handles
-                self.driver.close()
-                self.driver.switch_to.window(handles[0])
-                time.sleep(1)
+                self.close_and_switch()
+
+    def click_and_switch(self, btn: WebElement):
+        """
+        点击按钮并切换到新页面
+        :param btn: 要点击的按钮
+        """
+        self.click(btn)
+        time.sleep(1)  # 给新页面反应一会
+        # 切换到当前页面
+        handles = self.driver.window_handles
+        self.driver.switch_to.window(handles[1])
+
+    def close_and_switch(self):
+        """关闭当前页面并返回到首页"""
+        handles = self.driver.window_handles
+        self.driver.close()
+        self.driver.switch_to.window(handles[0])
+        time.sleep(1)
 
     def finish_a_lesson(self, btn: WebElement) -> None:
         """
@@ -98,11 +135,7 @@ class Viewer:
         :param btn: “学”按钮
         :return: None
         """
-        self.click(btn)
-        time.sleep(1)  # 给新页面反应一会
-        # 切换到当前页面
-        handles = self.driver.window_handles
-        self.driver.switch_to.window(handles[1])
+        self.click_and_switch(btn)
 
         video = self.driver.find_element(By.TAG_NAME, 'video')
 
@@ -126,7 +159,27 @@ class Viewer:
             time.sleep(1)
 
         logging.info('好诶~完成啦~')
-        # 关闭页面，返回首页
-        self.driver.close()
-        self.driver.switch_to.window(handles[0])
-        time.sleep(1)  # 怎么每次换页面都得等一会
+
+        self.close_and_switch()
+
+    def finist_a_test(self, btn: WebElement):
+        """
+        完成一张试卷
+        选择题随机选一个，大题传一个占位图片文件，并自批为满分
+        """
+        self.click_and_switch(btn)
+
+        # 完成选择题
+        options_uls = self.driver.find_elements(By.CLASS_NAME, 'pm-question-options')
+        for ul in options_uls:
+            items = ul.find_elements(By.CSS_SELECTOR, 'li')
+            # 随机选一个选项
+            self.click(random.choice(items))
+            time.sleep(0.1)
+
+        time.sleep(1)
+
+        # 完成大题
+        ...
+
+        self.close_and_switch()
