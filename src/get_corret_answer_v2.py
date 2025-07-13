@@ -63,6 +63,11 @@ def get_answer(bizCode:str, homeworkId:str, userId:str, paperId:str, reportId:st
             headers=headers,
             json=payload
         )
+        
+        # 检查HTTP状态码
+        if response.status_code != 200:
+            return f"API请求失败，状态码: {response.status_code}"
+        
         data = json.loads(response.text)['data']
 
         answer_dict = {}
@@ -87,12 +92,14 @@ def get_answer(bizCode:str, homeworkId:str, userId:str, paperId:str, reportId:st
         
         return answer_dict if answer_dict else '未找到正确答案'
 
-    except ValueError:
-        print("响应解析失败，原始内容:", response.text)
+    except json.JSONDecodeError:
+        return f"响应解析失败，原始内容: {response.text[:200]}"  # 只返回前200个字符避免过长
+    except KeyError:
+        return f"API响应缺少关键字段，完整响应: {response.text[:200]}"
     except requests.exceptions.RequestException as e:
-        print(f"请求失败: {e}")
-
-
+        return f"网络请求失败: {type(e).__name__} - {str(e)}"
+    except Exception as e:
+        return f"处理过程中发生未预期错误: {type(e).__name__} - {str(e)}"
 
 
 if __name__ == '__main__':
