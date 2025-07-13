@@ -54,16 +54,14 @@ def get_answer(paperId:str, reportId:str, homeworkId:str, userId:str, token:str)
 
     try:
         # 发送 GET 请求
-        response = session.get(
-            url,
-            headers=headers,
-            timeout=15
-        )
+        response = session.get(url,headers=headers,timeout=15)
+
+        # open('tmp.json','w').write(response.text)
 
         # 尝试解析 JSON
         try:
             data = json.loads(response.text)['data']
-            answer_dict = {}  # 改为字典存储
+            answer_dict = {}
             
             # 遍历所有题目组
             for group in data.get('groups', []):
@@ -92,9 +90,9 @@ def get_answer(paperId:str, reportId:str, homeworkId:str, userId:str, token:str)
 
 
 if __name__ == '__main__':
-    paperId='1969526514235999045'
-    reportId='2040881795217891454'
+    paperId='1995378695485046992'
+    reportId='2040988842982768934'
     homeworkId='10389626'
     userId='151028179'
-    token = '151028179-1-89663793316a648f'
+    token = ''
     print(get_answer(paperId,reportId,homeworkId,userId,token))
