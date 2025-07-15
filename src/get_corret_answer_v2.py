@@ -67,7 +67,11 @@ def get_answer(bizCode:str, homeworkId:str, userId:str, paperId:str, reportId:st
         # 检查HTTP状态码
         if response.status_code != 200:
             return f"API请求失败，状态码: {response.status_code}"
-        
+        if response.json()['code'] == '2001106':
+            return f'登陆状态异常，请检查token是否过期或无效'
+        if json.loads(response.text)['code'] != '200':
+            return f"API请求失败，ewt状态码：{json.loads(response.text)['code']},消息：{json.loads(response.text)['msg']} "
+        # print(response.text)
         data = json.loads(response.text)['data']
 
         answer_dict = {}
@@ -106,8 +110,8 @@ if __name__ == '__main__':
     bizCode = '205'
     homeworkId='10389626'
     userId='151028179'
-    paperId='1969526514235999045'
-    reportId='2040988842982768934'
-    questionId='1176211251046524293'
-    token = '151028179-1-af93b7cbfc70ad17'
+    paperId='1996206103754744180'
+    reportId='2040663610879271448'
+    questionId='3244399719505180405'
+    token = ''
     print(get_answer(bizCode,homeworkId,userId,paperId,reportId,questionId,token))
