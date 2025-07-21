@@ -24,6 +24,19 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(), logging.FileHandler(f'log/log_{now}.txt', encoding='utf-8')],
 )
 
+'''
+配置文件样例：
+# 修改时不要删掉冒号后的空格
+browser: 浏览器名称（首字母大写），如 Chrome, Edge 等
+driver_path: 浏览器驱动路径
+username: 用户名
+password: 密码
+list_url: 课程列表页面的链接
+# 浏览器启动时的参数，这里给了个静音
+options: --mute-audio
+# AutoEwt 模式，选填 watch（看课）/ test（做试卷）
+mode: watch
+'''
 with open('config.yml', encoding='utf-8') as f:
     config = yaml.load(f, yaml.FullLoader)
     # 密码可能是纯数字
