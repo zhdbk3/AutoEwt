@@ -24,8 +24,6 @@ class Viewer:
         if self.mode not in ['watch', 'test']:
             logging.error('mode 只能是 watch 或 test，请检查配置文件！')
             exit(1)
-        if self.mode == 'test':
-            logging.warning('由于技术限制，请保持焦点在浏览器窗口上！')
 
         self.username = config['username']
         self.password = config['password']
