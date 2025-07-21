@@ -13,7 +13,7 @@ def get_answer(bizCode:str, homeworkId:str, userId:str, paperId:str, reportId:st
     :param homeworkId: 作业ID
     :param userId: 用户唯一标识
     :param paperId: 试卷ID
-    :param reportId: 报告ID
+    :param reportId: 报告ID，如果需要获取未完成的试卷的答案，需要传入一个已完成的reportId
     :param questionId: 问题ID
     :param token: 用户认证令牌
     
@@ -68,7 +68,7 @@ def get_answer(bizCode:str, homeworkId:str, userId:str, paperId:str, reportId:st
         if response.status_code != 200:
             return f"API请求失败，状态码: {response.status_code}"
         if response.json()['code'] == '2001106':
-            return f'登陆状态异常，请检查token是否过期或无效'
+            return f'请求失败，登陆状态异常，请检查token是否过期或无效'
         if json.loads(response.text)['code'] != '200':
             return f"API请求失败，ewt状态码：{json.loads(response.text)['code']},消息：{json.loads(response.text)['msg']} "
         # print(response.text)
@@ -99,19 +99,19 @@ def get_answer(bizCode:str, homeworkId:str, userId:str, paperId:str, reportId:st
     except json.JSONDecodeError:
         return f"响应解析失败，原始内容: {response.text[:200]}"  # 只返回前200个字符避免过长
     except KeyError:
-        return f"API响应缺少关键字段，完整响应: {response.text[:200]}"
+        return f"请求失败，API响应缺少关键字段，完整响应: {response.text[:200]}"
     except requests.exceptions.RequestException as e:
         return f"网络请求失败: {type(e).__name__} - {str(e)}"
     except Exception as e:
-        return f"处理过程中发生未预期错误: {type(e).__name__} - {str(e)}"
+        return f"处理失败，处理过程中发生未预期错误: {type(e).__name__} - {str(e)}"
 
 
 if __name__ == '__main__':
     bizCode = '205'
     homeworkId='10389626'
-    userId='151028179'
-    paperId='1996206103754744180'
-    reportId='2040663610879271448'
-    questionId='3244399719505180405'
+    userId=''
+    paperId='1986397841559642844'
+    reportId='2040988842982768934'
+    questionId='1176211251046524293'
     token = ''
     print(get_answer(bizCode,homeworkId,userId,paperId,reportId,questionId,token))
