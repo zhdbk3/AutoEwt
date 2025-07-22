@@ -21,10 +21,6 @@ class AutoVideo:
         :param config: 读取的配置文件
         """
         self.mode: Literal['watch'] = config['mode']
-        if self.mode != 'watch':
-            logging.error('mode 只能是 watch，请检查配置文件！')
-            exit(1)
-
         self.driver = driver
         self.finish_days_list()
 

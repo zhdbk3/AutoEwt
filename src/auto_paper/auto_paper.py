@@ -21,10 +21,6 @@ class AutoPaper:
         :param config: 读取的配置文件
         """
         self.mode: Literal['test'] = config['mode']
-        if self.mode != 'test':
-            logging.error('mode 只能是 test，请检查配置文件！')
-            exit(1)
-
         self.driver = driver
         self.finish_days_list()
 
@@ -63,7 +59,7 @@ class AutoPaper:
     def finish_a_test(self, btn: WebElement):
         """
         完成一张试卷
-        选择题随机选一个，大题传一个占位图片文件，并自批为满分
+        选择题随机选一个，大题**并不**传一个占位图片文件[doge]，并自批为满分
         """
         click_and_switch(self.driver, btn)
 

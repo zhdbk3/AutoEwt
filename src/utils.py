@@ -9,6 +9,7 @@ import time
 import yaml
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.common.by import By
 
 def init_logging():
     # 如果不存在 log 文件夹，则创建
@@ -45,6 +46,9 @@ def read_config():
         # 密码可能是纯数字
         config['password'] = str(config['password'])
         logging.info('成功读取到配置文件')
+        if config['mode'] not in ['watch', 'test']:
+            logging.error('mode 只能是 watch 或 test，请检查配置文件！')
+            exit(1)
     return config
 
 def init_driver(config):
@@ -62,14 +66,20 @@ def init_driver(config):
     return driver
 
 def login(driver, username, password):
-    from selenium.webdriver.common.by import By  # 导入 By 类
     logging.info('登录账号……')
-    # 使用新的定位方式 By.ID
     driver.find_element(By.ID, 'login__password_userName').send_keys(username)
     driver.find_element(By.ID, 'login__password_password').send_keys(password)
-    # 使用新的定位方式 By.CLASS_NAME
     driver.find_element(By.CLASS_NAME, 'ant-btn-block').submit()
-
+    # 等待一段时间，确保页面加载完成并生成 token
+    time.sleep(3)
+    # 获取所有 cookie
+    cookies = driver.get_cookies()
+    token = None
+    for cookie in cookies:
+        if cookie['name'] == 'token':
+            token = cookie['value']
+            break
+    return token
 
 def click(driver, btn: WebElement) -> None:
     """

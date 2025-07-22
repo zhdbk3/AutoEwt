@@ -22,12 +22,13 @@ retry_interval = 3  # 初始重试间隔为 3 秒
 while True:
     try:
         driver = init_driver(config)
-        login(driver, config['username'], config['password'])
+        # 登录并获取 token
+        token = login(driver, config['username'], config['password'])
+        print(f"登录成功，Token: {token}")
         if config['mode'] == 'watch':
             AutoVideo(driver, config)
         elif config['mode'] == 'test':
             AutoPaper(driver, config)
-
         break  # 如果程序正常执行完毕，退出循环
     except StaleElementReferenceException:
         logging.error(traceback.format_exc())
