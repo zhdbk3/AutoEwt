@@ -2,16 +2,14 @@ import requests
 import json
 
 
-def get_answer(bizCode:str, homeworkId:str, userId:str, paperId:str, reportId:str, questionId:str, token:str):
+def get_answer(bizCode:str, paperId:str, reportId:str, questionId:str, token:str):
     """获取指定试卷的单选题和多选题正确答案
     
     通过调用EWT360 API获取指定用户的作业报告，解析并返回题目ID与正确答案的映射
     
     很多地方写的很不规范，一部分是不得不和 ewt 统一，还其它的看到就改一下吧qwq
 
-    :param bizCode: 业务ID，见于url
-    :param homeworkId: 作业ID
-    :param userId: 用户唯一标识
+    :param bizCode: 业务ID
     :param paperId: 试卷ID
     :param reportId: 报告ID，如果需要获取未完成的试卷的答案，需要传入一个已完成的reportId
     :param questionId: 问题ID
@@ -109,9 +107,9 @@ def get_answer(bizCode:str, homeworkId:str, userId:str, paperId:str, reportId:st
 if __name__ == '__main__':
     bizCode = '205'
     homeworkId='10389626'
-    userId=''
+    userId='151028179'
     paperId='1986397841559642844'
     reportId='2040988842982768934'
     questionId='1176211251046524293'
-    token = ''
-    print(get_answer(bizCode,homeworkId,userId,paperId,reportId,questionId,token))
+    token = '151028179-1-'
+    print(get_answer(bizCode,paperId,reportId,questionId,token))

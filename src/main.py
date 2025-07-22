@@ -24,7 +24,7 @@ while True:
         driver = init_driver(config)
         # 登录并获取 token
         token = login(driver, config['username'], config['password'])
-        print(f"登录成功，Token: {token}")
+        logging.info(f"登录成功，Token: {token}")
         if config['mode'] == 'watch':
             AutoVideo(driver, config)
         elif config['mode'] == 'test':
