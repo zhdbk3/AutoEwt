@@ -9,7 +9,6 @@ from typing import Literal
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException
 
 from utils import click, click_and_switch, close_and_switch
 
@@ -86,13 +85,12 @@ class AutoVideo:
         while not video.get_attribute('ended'):
             # 老师敲黑板，帮你暂停一下
             # 看看你在不在认真听课~
-            try:
-                click(self.driver, self.driver.find_element(
-                    By.XPATH, "//*[contains(text(), '点击通过检查') or contains(text(), 'A')]"
-                ))
-                logging.info('点击了检查点')
-            except NoSuchElementException:
-                pass
+            els: list[WebElement] = self.driver.find_elements(
+                By.XPATH, "//*[contains(text(), '点击通过检查') or contains(text(), 'A')]"
+            )
+            els = [e for e in els if e.is_displayed()]
+            for e in els:
+                click(self.driver, e)
 
             time.sleep(1)
 
