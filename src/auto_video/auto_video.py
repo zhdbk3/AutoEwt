@@ -13,6 +13,7 @@ from selenium.common.exceptions import NoSuchElementException
 
 from utils import click, click_and_switch, close_and_switch
 
+
 class AutoVideo:
     def __init__(self, driver, config):
         """
@@ -86,7 +87,9 @@ class AutoVideo:
             # 老师敲黑板，帮你暂停一下
             # 看看你在不在认真听课~
             try:
-                self.driver.find_element(By.XPATH, "//*[contains(text(), '点击通过检查')]").click()
+                self.driver.find_element(
+                    By.XPATH, "//*[contains(text(), '点击通过检查') or contains(text(), 'A')]"
+                ).click()
                 logging.info('点击了检查点')
             except NoSuchElementException:
                 pass
