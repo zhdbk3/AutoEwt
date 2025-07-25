@@ -3,14 +3,28 @@
 #
 
 import traceback
-from utils import init_logging, read_config, init_driver, login
-from auto_video.auto_video import AutoVideo
-from auto_paper.auto_paper import AutoPaper
-from selenium.common.exceptions import StaleElementReferenceException
 import logging
 import time
+import os
+import datetime
 
-init_logging()
+from selenium.common.exceptions import StaleElementReferenceException
+
+from auto_base import read_config
+from auto_video.auto_video import AutoVideo
+from auto_paper.auto_paper import AutoPaper
+
+# 如果不存在 log 文件夹，则创建
+if not os.path.exists('log'):
+    os.makedirs('log')
+# 初始化日志
+now = datetime.datetime.now().strftime('%Y-%m-%d_%H.%M.%S')
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s %(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[logging.StreamHandler(), logging.FileHandler(f'log/log_{now}.txt', encoding='utf-8')],
+)
 
 config = read_config()
 
@@ -21,14 +35,14 @@ retry_interval = 3  # 初始重试间隔为 3 秒
 
 while True:
     try:
-        driver = init_driver(config)
-        # 登录并获取 token
-        token = login(driver, config['username'], config['password'])
-        logging.info(f"登录成功，Token: {token}")
-        if config['mode'] == 'watch':
-            AutoVideo(driver, config)
-        elif config['mode'] == 'test':
-            AutoPaper(driver, config)
+        match read_config()['mode']:
+            case 'watch':
+                auto = AutoVideo()
+            case 'test':
+                auto = AutoPaper()
+            case _:
+                logging.error('mode 只能是 watch 或 test，请检查配置文件！')
+                exit(1)
         break  # 如果程序正常执行完毕，退出循环
     except StaleElementReferenceException:
         logging.error(traceback.format_exc())
@@ -38,8 +52,7 @@ while True:
         logging.critical(traceback.format_exc())
         logging.critical(f'程序异常崩溃，错误信息: {str(e)}，正在自动重启……')
     finally:
-        if 'driver' in locals():
-            driver.quit()
+        auto.driver.quit()
 
     retry_count += 1
     logging.info(f'第 {retry_count} 次重试，将在 {retry_interval} 秒后进行')

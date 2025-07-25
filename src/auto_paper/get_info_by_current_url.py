@@ -1,5 +1,6 @@
 from urllib.parse import parse_qs
 
+
 def get_info_from_url(paper_url):
     """
     从给定的 URL 中提取查询参数并返回一个字典。
@@ -18,6 +19,7 @@ def get_info_from_url(paper_url):
     query_params = parse_qs(query_string)
     # 将字典的值从列表转换为单个值
     return {key: value[0] for key, value in query_params.items()}
+
 
 if __name__ == '__main__':
     test_urls = [

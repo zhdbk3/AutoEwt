@@ -5,41 +5,21 @@
 import time
 import logging
 import traceback
-from typing import Literal
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
-from utils import click, click_and_switch, close_and_switch
+from auto_base import AutoBase
 
 
-class AutoVideo:
-    def __init__(self, driver, config):
-        """
-        自动看课程序的主体
-        :param driver: 浏览器驱动实例
-        :param config: 读取的配置文件
-        """
-        self.mode: Literal['watch'] = config['mode']
-        self.driver = driver
-        self.finish_days_list()
-
-    def finish_days_list(self) -> None:
-        """完成所有天"""
-        time.sleep(5)
-        days = self.driver.find_elements(By.CSS_SELECTOR, 'li[data-active="true"], li[data-active="false"]')
-        logging.info(f'一共有 {len(days)} 天的任务')
-        for i in range(len(days)):
-            logging.info(f'================ 第 {i + 1} / {len(days)} 天 ================')
-            self.finish_a_day(days[i])
-
+class AutoVideo(AutoBase):
     def finish_a_day(self, day: WebElement) -> None:
         """
         完成一天的任务
         :param day: 该天在网页上的标签
         :return: None
         """
-        click(self.driver, day)
+        self.click(day)
         time.sleep(2)
         btns = self.driver.find_elements(
             By.XPATH,
@@ -62,7 +42,7 @@ class AutoVideo:
                 logging.warning('该课已跳过')
                 logging.warning('如果这是视频课，请报告 bug')
                 # 关闭页面，返回首页
-                close_and_switch(self.driver)
+                self.close_and_switch()
 
     def finish_a_lesson(self, btn: WebElement) -> None:
         """
@@ -70,7 +50,7 @@ class AutoVideo:
         :param btn: “学”按钮
         :return: None
         """
-        click_and_switch(self.driver, btn)
+        self.click_and_switch(btn)
 
         video = self.driver.find_element(By.TAG_NAME, 'video')
 
@@ -90,10 +70,10 @@ class AutoVideo:
             )
             els = [e for e in els if e.is_displayed()]
             for e in els:
-                click(self.driver, e)
+                self.click(e)
 
             time.sleep(1)
 
         logging.info('好诶~完成啦~')
 
-        close_and_switch(self.driver)
+        self.close_and_switch()

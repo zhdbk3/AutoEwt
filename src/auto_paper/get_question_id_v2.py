@@ -38,29 +38,27 @@ def get_question_ids(paperId: str, token: str):
         "scheme": "https",
     }
 
-
     try:
-        response = session.get(url,headers=headers,)
-        
+        response = session.get(url, headers=headers, )
+
         # 检查HTTP状态码
         if response.status_code != 200:
             return f"API请求失败，状态码: {response.status_code}"
-        
+
         if response.json()['code'] == '2001106':
             return f'请求失败，登陆状态异常，请检查token是否过期或无效'
-        
+
         if json.loads(response.text)['code'] != '200':
             return f"API请求失败，ewt状态码：{json.loads(response.text)['code']},消息：{json.loads(response.text)['msg']} "
 
-
         # 解析JSON响应
         json_data = response.json()
-        
+
         # print(response.text)
         # 检查响应是否包含data字段
         if 'data' not in json_data:
             return f"请求失败，API响应缺少data字段，完整响应: {response.text[:200]}"
-        
+
         def extract_ids(question_list):
             ids = []
             if not isinstance(question_list, list):
@@ -89,10 +87,11 @@ def get_question_ids(paperId: str, token: str):
     except Exception as e:
         return f"处理失败，处理过程中发生未预期错误: {type(e).__name__} - {str(e)}"
 
+
 if __name__ == '__main__':
     # 测试参数
     # paperId = '1996206103754744180' # 语文
-    paperId = '1986397841559642844' # 数学
+    paperId = '1986397841559642844'  # 数学
     token = ''
     result = get_question_ids(paperId, token)
     print("获取到的题目ID列表:", result)

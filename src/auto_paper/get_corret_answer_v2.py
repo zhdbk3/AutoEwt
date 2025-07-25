@@ -2,7 +2,7 @@ import requests
 import json
 
 
-def get_answer(bizCode:str, paperId:str, reportId:str, questionId:str, token:str):
+def get_answer(bizCode: str, paperId: str, reportId: str, questionId: str, token: str):
     """获取指定试卷的单选题和多选题正确答案
     
     通过调用EWT360 API获取指定用户的作业报告，解析并返回题目ID与正确答案的映射
@@ -34,7 +34,6 @@ def get_answer(bizCode:str, paperId:str, reportId:str, questionId:str, token:str
 
     url = "https://web.ewt360.com/api/answerprod/web/answer/simple/question/info"
 
-
     # 请求头信息
     headers = {
         "authority": "web.ewt360.com",
@@ -53,7 +52,6 @@ def get_answer(bizCode:str, paperId:str, reportId:str, questionId:str, token:str
     }
 
     url = "https://web.ewt360.com/api/answerprod/web/answer/simple/question/info"
-    
 
     try:
         response = session.post(
@@ -61,7 +59,7 @@ def get_answer(bizCode:str, paperId:str, reportId:str, questionId:str, token:str
             headers=headers,
             json=payload
         )
-        
+
         # 检查HTTP状态码
         if response.status_code != 200:
             return f"API请求失败，状态码: {response.status_code}"
@@ -87,11 +85,11 @@ def get_answer(bizCode:str, paperId:str, reportId:str, questionId:str, token:str
         # 先处理根节点题目自身答案
         if data.get('rightAnswer'):
             answer_dict[data['id']] = data['rightAnswer']
-        
+
         # 无论是否有子题都尝试解析
         if data.get('childQuestions'):
             parse_questions(data['childQuestions'])
-        
+
         return answer_dict if answer_dict else '未找到正确答案'
 
     except json.JSONDecodeError:
@@ -106,10 +104,10 @@ def get_answer(bizCode:str, paperId:str, reportId:str, questionId:str, token:str
 
 if __name__ == '__main__':
     bizCode = '205'
-    homeworkId='10389626'
-    userId='151028179'
-    paperId='1986397841559642844'
-    reportId='2040988842982768934'
-    questionId='1176211251046524293'
+    homeworkId = '10389626'
+    userId = '151028179'
+    paperId = '1986397841559642844'
+    reportId = '2040988842982768934'
+    questionId = '1176211251046524293'
     token = '151028179-1-'
-    print(get_answer(bizCode,paperId,reportId,questionId,token))
+    print(get_answer(bizCode, paperId, reportId, questionId, token))
