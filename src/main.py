@@ -36,12 +36,12 @@ retry_interval = 3  # 初始重试间隔为 3 秒
 while True:
     try:
         match read_config()['mode']:
-            case 'watch':
+            case 'video':
                 auto = AutoVideo()
-            case 'test':
+            case 'paper':
                 auto = AutoPaper()
             case _:
-                logging.error('mode 只能是 watch 或 test，请检查配置文件！')
+                logging.error('mode 只能是 video 或 paper，请检查配置文件！')
                 exit(1)
         break  # 如果程序正常执行完毕，退出循环
     except StaleElementReferenceException:

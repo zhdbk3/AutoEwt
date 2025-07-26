@@ -6,8 +6,8 @@ password: 密码
 list_url: 课程列表页面的链接
 # 浏览器启动时的参数，这里给了个静音
 options: --mute-audio
-# AutoEwt 模式，选填 watch（看课）/ test（做试卷）
-mode: watch
+# AutoEwt 模式，选填 video（看课）/ paper（做试卷）
+mode: video
 # 是否 (true / false) 给选择题选择正确答案
 choose_correctly: true
 # 如果 choose_correctly 为 true，请填写 report_id 字段，否则可以不动
