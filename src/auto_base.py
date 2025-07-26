@@ -46,7 +46,7 @@ class AutoBase(ABC):
         self.mode = self.config['mode']
         self.driver = self.init_driver()
 
-        self.login()
+        self.token = self.login()
         self.finish_days_list()
 
     def init_driver(self) -> webdriver.Edge:
@@ -63,20 +63,25 @@ class AutoBase(ABC):
         driver.implicitly_wait(3)
         return driver
 
-    def login(self) -> None:
+    def login(self) -> str:
+        """
+        登录
+        :return: token
+        """
         logging.info('登录账号……')
         self.driver.find_element(By.ID, 'login__password_userName').send_keys(self.config['username'])
         self.driver.find_element(By.ID, 'login__password_password').send_keys(self.config['password'])
         self.driver.find_element(By.CLASS_NAME, 'ant-btn-block').submit()
         # 等待一段时间，确保页面加载完成并生成 token
         time.sleep(3)
-        # # 获取所有 cookie
-        # cookies = self.driver.get_cookies()
-        # token = None
-        # for cookie in cookies:
-        #     if cookie['name'] == 'token':
-        #         token = cookie['value']
-        #         break
+        # 获取所有 cookie
+        cookies = self.driver.get_cookies()
+        token = None
+        for cookie in cookies:
+            if cookie['name'] == 'token':
+                token = cookie['value']
+                break
+        return token
 
     def click(self, btn: WebElement) -> None:
         """
@@ -110,7 +115,7 @@ class AutoBase(ABC):
         time.sleep(5)
         days = self.driver.find_elements(By.CSS_SELECTOR, 'li[data-active="true"], li[data-active="false"]')
         logging.info(f'一共有 {len(days)} 天的任务')
-        for i in range(len(days)):
+        for i in range(self.config['day_to_start_on'] - 1, len(days)):
             logging.info(f'================ 第 {i + 1} / {len(days)} 天 ================')
             self.finish_a_day(days[i])
 

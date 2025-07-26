@@ -52,7 +52,8 @@ while True:
         logging.critical(traceback.format_exc())
         logging.critical(f'程序异常崩溃，错误信息: {str(e)}，正在自动重启……')
     finally:
-        auto.driver.quit()
+        if 'auto' in locals():
+            auto.driver.quit()
 
     retry_count += 1
     logging.info(f'第 {retry_count} 次重试，将在 {retry_interval} 秒后进行')

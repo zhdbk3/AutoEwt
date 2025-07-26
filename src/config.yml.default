@@ -8,3 +8,10 @@ list_url: 课程列表页面的链接
 options: --mute-audio
 # AutoEwt 模式，选填 watch（看课）/ test（做试卷）
 mode: watch
+# 是否 (true / false) 给选择题选择正确答案
+choose_correctly: true
+# 如果 choose_correctly 为 true，请填写 report_id 字段，否则可以不动
+# 一张**已经完成**的试卷的 reportId（请到浏览器上方链接中获取该参数的值）
+report_id: reportId
+# 从第几天开始扫描（用于开发者调试程序方便，当然用户也可以设置，每次启动能省一丢丢时间）
+day_to_start_on: 1
