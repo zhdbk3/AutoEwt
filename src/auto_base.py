@@ -102,6 +102,7 @@ class AutoBase(ABC):
         # 切换到当前页面
         handles = self.driver.window_handles
         self.driver.switch_to.window(handles[1])
+        time.sleep(3)
 
     def close_and_switch(self) -> None:
         """关闭当前页面并返回到首页"""
