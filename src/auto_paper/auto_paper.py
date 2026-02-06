@@ -21,7 +21,7 @@ class AutoPaper(AutoBase):
         time.sleep(2)
         btns = self.driver.find_elements(
             By.XPATH,
-            "//div[contains(@class, 'btn-3dDLy')][contains(., '测一测') or contains(., '继续答')]")
+            "//div[contains(@class, 'btn-AoqsA')][contains(., '测一测') or contains(., '继续答')]")
         unit = '张试卷'
         logging.info(f'该天还剩 {len(btns)} {unit}')
         for i in range(len(btns)):

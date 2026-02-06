@@ -23,7 +23,7 @@ class AutoVideo(AutoBase):
         time.sleep(2)
         btns = self.driver.find_elements(
             By.XPATH,
-            "//div[contains(@class, 'btn-3dDLy') "
+            "//div[contains(@class, 'btn-AoqsA') "
             "and .//text()[contains(., '学')] "
             "and not(.//text()[contains(., '已学完')])]")
         unit = '节课'
