@@ -2,15 +2,17 @@
 # Created by  着火的冰块nya (zhdbk3) on 2025/1/23
 #
 
+import traceback
+import logging
+import time
 import os
 import datetime
-import logging
-import traceback
 
-import yaml
 from selenium.common.exceptions import StaleElementReferenceException
 
-from viewer import Viewer
+from auto_base import read_config
+from auto_video.auto_video import AutoVideo
+from auto_paper.auto_paper import AutoPaper
 
 # 如果不存在 log 文件夹，则创建
 if not os.path.exists('log'):
@@ -24,26 +26,36 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(), logging.FileHandler(f'log/log_{now}.txt', encoding='utf-8')],
 )
 
-with open('config.yml', encoding='utf-8') as f:
-    config = yaml.load(f, yaml.FullLoader)
-    # 密码可能是纯数字
-    config['password'] = str(config['password'])
-    logging.info('成功读取到配置文件')
+config = read_config()
 
 logging.info('启动！')
 
-num_abnormal_collapse = 0
+retry_count = 0
+retry_interval = 3  # 初始重试间隔为 3 秒
+
 while True:
     try:
-        viewer = Viewer(config)
+        match read_config()['mode']:
+            case 'video':
+                auto = AutoVideo()
+            case 'paper':
+                auto = AutoPaper()
+            case _:
+                logging.error('mode 只能是 video 或 paper，请检查配置文件！')
+                exit(1)
+        break  # 如果程序正常执行完毕，退出循环
     except StaleElementReferenceException:
         logging.error(traceback.format_exc())
         logging.info('程序崩溃，正在自动重启……')
         logging.info('这是由于页面自动刷新导致的元素查找错误，是正常现象')
-    except:
+    except Exception as e:
         logging.critical(traceback.format_exc())
-        logging.critical('程序异常崩溃，请报告 bug，正在自动重启……')
-        num_abnormal_collapse += 1
-        if num_abnormal_collapse >= 5:
-            logging.critical('异常崩溃次数过多，已停止程序')
-            break
+        logging.critical(f'程序异常崩溃，错误信息: {str(e)}，正在自动重启……')
+    finally:
+        if 'auto' in locals():
+            auto.driver.quit()
+
+    retry_count += 1
+    logging.info(f'第 {retry_count} 次重试，将在 {retry_interval} 秒后进行')
+    time.sleep(retry_interval)
+    retry_interval *= 2  # 每次重试间隔时间翻倍
