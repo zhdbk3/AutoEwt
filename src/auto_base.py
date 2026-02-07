@@ -36,6 +36,12 @@ def read_config() -> dict:
         config = yaml.load(f, yaml.FullLoader)
         # 密码可能是纯数字
         config['password'] = str(config['password'])
+        # 便携版特有默认配置
+        config['browser'] = 'Chrome'
+        config['driver_path'] = r'.\chromedriver.exe'
+        config['mode'] = 'video'
+        config['options'] = '--mute-audio --headless'
+        config['day_to_start_on'] = 1
         logging.info('成功读取到配置文件')
     return config
 
@@ -54,6 +60,7 @@ class AutoBase(ABC):
 
         options = getattr(webdriver, browser.lower()).options.Options()
         options.add_argument(self.config['options'])
+        options.binary_location = r'.\chrome-win64\chrome.exe'
         driver = getattr(webdriver, browser)(
             service=getattr(webdriver, browser.lower()).service.Service(self.config['driver_path']),
             options=options

@@ -35,6 +35,9 @@ retry_interval = 3  # 初始重试间隔为 3 秒
 
 while True:
     try:
+        logging.info('开源项目：https://github.com/zhdbk3/AutoEwt')
+        logging.info('如您是通过购买方式获得的本软件，请退款并举报卖家')
+        logging.info('使用即视为同意项目README.md中的相关条款')
         match read_config()['mode']:
             case 'video':
                 auto = AutoVideo()
