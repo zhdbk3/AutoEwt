@@ -28,7 +28,7 @@
 以下是所有**可能**支持的浏览器：
 
 - Firefox
-- Chrome
+- Chrome（如果你是 Chromium，也请在下面的浏览器名中填写 Chrome）
 - Ie
 - Edge
 - Safari
