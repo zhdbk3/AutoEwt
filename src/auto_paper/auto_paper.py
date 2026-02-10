@@ -18,7 +18,7 @@ from .get_info_by_current_url import get_info_from_url
 class AutoPaper(AutoBase):
     def finish_a_day(self, day: WebElement) -> None:
         self.click(day)
-        time.sleep(2*self.config.get('delay_multiplier'))
+        time.sleep(2 * self.config.get('delay_multiplier'))
         btns = self.driver.find_elements(
             By.XPATH,
             "//div[contains(@class, 'btn-AoqsA')][contains(., '测一测') or contains(., '继续答')]")
@@ -53,7 +53,7 @@ class AutoPaper(AutoBase):
         for q in questions:
             q_id = q.get_attribute('id')[13:]  # 截断前面的 ewt-question-
             answers |= get_answer(biz_code, paper_id, str(self.config['report_id']), q_id, self.token)
-            time.sleep(0.2*self.config.get('delay_multiplier'))
+            time.sleep(0.2 * self.config.get('delay_multiplier'))
 
         # 完成选择题
         options_uls = self.driver.find_elements(By.CLASS_NAME, 'pm-question-options')
@@ -69,25 +69,25 @@ class AutoPaper(AutoBase):
                     self.click(ul.find_element(
                         By.XPATH, f".//span[contains(@class, 'pm-tag-letter') and text()='{letter}']"
                     ))
-            time.sleep(0.2*self.config.get('delay_multiplier'))
+            time.sleep(0.2 * self.config.get('delay_multiplier'))
 
-        time.sleep(1*self.config.get('delay_multiplier'))
+        time.sleep(1 * self.config.get('delay_multiplier'))
 
         # 提交
         self.click(self.driver.find_element(By.CLASS_NAME, 'ant-btn-primary'))
-        time.sleep(1*self.config.get('delay_multiplier'))
+        time.sleep(1 * self.config.get('delay_multiplier'))
         self.click(self.driver.find_element(By.CLASS_NAME, 'confirm-right'))
-        time.sleep(5*self.config.get('delay_multiplier'))
+        time.sleep(5 * self.config.get('delay_multiplier'))
 
         # 自批满分（不一定有此环节）
         n = len(self.driver.find_elements(By.CSS_SELECTOR, '.content-left-scroll > ul > li'))
         if n != 0:
             for i in range(n):
                 self.click(self.driver.find_element(By.CSS_SELECTOR, '.content-right-scroll > ul > li:last-child'))
-                time.sleep(2*self.config.get('delay_multiplier'))
+                time.sleep(2 * self.config.get('delay_multiplier'))
             self.click(self.driver.find_element(By.CLASS_NAME, 'content-main-footer_submit_btn_full'))
-            time.sleep(1*self.config.get('delay_multiplier'))
+            time.sleep(1 * self.config.get('delay_multiplier'))
             self.click(self.driver.find_element(By.CLASS_NAME, 'confirm-right'))
-            time.sleep(3*self.config.get('delay_multiplier'))
+            time.sleep(3 * self.config.get('delay_multiplier'))
 
         self.close_and_switch()

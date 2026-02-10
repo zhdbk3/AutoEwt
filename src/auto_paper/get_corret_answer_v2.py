@@ -7,7 +7,7 @@ def get_answer(bizCode: str, paperId: str, reportId: str, questionId: str, token
     
     通过调用EWT360 API获取指定用户的作业报告，解析并返回题目ID与正确答案的映射
     
-    很多地方写的很不规范，一部分是不得不和 ewt 统一，还其它的看到就改一下吧qwq
+    很多地方写得很不规范，一部分是不得不和 ewt 统一，还其它的看到就改一下吧qwq
 
     :param bizCode: 业务ID
     :param paperId: 试卷ID
