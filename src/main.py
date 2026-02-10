@@ -58,4 +58,4 @@ while True:
     retry_count += 1
     logging.info(f'第 {retry_count} 次重试，将在 {retry_interval} 秒后进行')
     time.sleep(retry_interval)
-    retry_interval *= 2  # 每次重试间隔时间翻倍
+    retry_interval = min(retry_interval * 2, 300)  # 300s 熔断

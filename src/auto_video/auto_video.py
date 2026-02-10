@@ -20,7 +20,7 @@ class AutoVideo(AutoBase):
         :return: None
         """
         self.click(day)
-        time.sleep(2)
+        time.sleep(2*self.config.get('delay_multiplier'))
         btns = self.driver.find_elements(
             By.XPATH,
             "//div[contains(@class, 'btn-AoqsA') "
@@ -56,7 +56,7 @@ class AutoVideo(AutoBase):
 
         # 有时需要手动点播放
         try:
-            time.sleep(3)
+            time.sleep(3*self.config.get('delay_multiplier'))
             self.driver.find_element(By.CLASS_NAME, 'vjs-big-play-button').click()
             logging.info('手动开始播放视频')
         except:
@@ -72,7 +72,7 @@ class AutoVideo(AutoBase):
             for e in els:
                 self.click(e)
 
-            time.sleep(1)
+            time.sleep(1*self.config.get('delay_multiplier'))
 
         logging.info('好诶~完成啦~')
 

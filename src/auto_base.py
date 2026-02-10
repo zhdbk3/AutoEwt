@@ -36,6 +36,15 @@ def read_config() -> dict:
         config = yaml.load(f, yaml.FullLoader)
         # 密码可能是纯数字
         config['password'] = str(config['password'])
+        # 如果转换延迟倍率为浮点数，失败（不存在或不合法）则报错并默认1.0
+        try:
+            config['delay_multiplier'] = float(config.get('delay_multiplier'))
+        except ValueError:
+            logging.warning('配置文件中 delay_multiplier 不是合法的浮点数，将使用默认值 1.0')
+            config['delay_multiplier'] = 1.0
+        except TypeError:
+            logging.info('配置文件中未设置 delay_multiplier，将使用默认值 1.0')
+            config['delay_multiplier'] = 1.0
         logging.info('成功读取到配置文件')
     return config
 
@@ -73,7 +82,7 @@ class AutoBase(ABC):
         self.driver.find_element(By.ID, 'login__password_password').send_keys(self.config['password'])
         self.driver.find_element(By.CLASS_NAME, 'ant-btn-block').submit()
         # 等待一段时间，确保页面加载完成并生成 token
-        time.sleep(3)
+        time.sleep(3*self.config.get('delay_multiplier'))
         # 获取所有 cookie
         cookies = self.driver.get_cookies()
         token = None
@@ -98,22 +107,22 @@ class AutoBase(ABC):
         :param btn: 要点击的按钮
         """
         self.click(btn)
-        time.sleep(1)  # 给新页面反应一会
+        time.sleep(1*self.config.get('delay_multiplier'))  # 给新页面反应一会
         # 切换到当前页面
         handles = self.driver.window_handles
         self.driver.switch_to.window(handles[1])
-        time.sleep(3)
+        time.sleep(3*self.config.get('delay_multiplier'))
 
     def close_and_switch(self) -> None:
         """关闭当前页面并返回到首页"""
         handles = self.driver.window_handles
         self.driver.close()
         self.driver.switch_to.window(handles[0])
-        time.sleep(1)
+        time.sleep(1*self.config.get('delay_multiplier'))
 
     def finish_days_list(self) -> None:
         """完成所有天"""
-        time.sleep(5)
+        time.sleep(5*self.config.get('delay_multiplier'))
         days = self.driver.find_elements(By.CSS_SELECTOR, 'li[data-active="true"], li[data-active="false"]')
         logging.info(f'一共有 {len(days)} 天的任务')
         for i in range(self.config['day_to_start_on'] - 1, len(days)):
