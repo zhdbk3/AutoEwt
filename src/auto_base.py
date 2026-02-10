@@ -45,6 +45,12 @@ def read_config() -> dict:
         except TypeError:
             logging.info('配置文件中未设置 delay_multiplier，将使用默认值 1.0')
             config['delay_multiplier'] = 1.0
+        # 便携版特有默认配置
+        config['browser'] = 'Chrome'
+        config['driver_path'] = r'.\chromedriver.exe'
+        config['mode'] = 'video'
+        config['options'] = '--mute-audio --headless'
+        config['day_to_start_on'] = 1
         logging.info('成功读取到配置文件')
     return config
 
@@ -63,6 +69,7 @@ class AutoBase(ABC):
 
         options = getattr(webdriver, browser.lower()).options.Options()
         options.add_argument(self.config['options'])
+        options.binary_location = r'.\chrome-win64\chrome.exe'
         driver = getattr(webdriver, browser)(
             service=getattr(webdriver, browser.lower()).service.Service(self.config['driver_path']),
             options=options
