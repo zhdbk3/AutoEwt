@@ -71,6 +71,7 @@ class AutoVideo(AutoBase):
             els = [e for e in els if e.is_displayed()]
             for e in els:
                 self.click(e)
+                logging.info('点击了检查点')
 
             time.sleep(1*self.config.get('delay_multiplier'))
 
