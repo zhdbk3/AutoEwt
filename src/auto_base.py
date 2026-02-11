@@ -1,4 +1,3 @@
-# auto_base.py
 #
 # 此模块用于存储通用的工具函数
 #
@@ -29,10 +28,6 @@ def read_config() -> dict:
     options: --mute-audio
     # AutoEwt 模式，选填 watch（看课）/ test（做试卷）
     mode: watch
-    # 从第几天开始，默认为1
-    day_to_start_on: 1
-    # 延迟倍率，默认1.0
-    delay_multiplier: 1.0
     """
     if not os.path.exists('config.yml'):
         logging.error('配置文件 config.yml 不存在，请检查！')
@@ -44,18 +39,18 @@ def read_config() -> dict:
         # 如果转换延迟倍率为浮点数，失败（不存在或不合法）则报错并默认1.0
         try:
             config['delay_multiplier'] = float(config.get('delay_multiplier'))
-        except (ValueError, TypeError):
-            if config.get('delay_multiplier') is not None:
-                logging.warning('配置文件中 delay_multiplier 不是合法的浮点数，将使用默认值 1.0')
-            else:
-                logging.info('配置文件中未设置 delay_multiplier，将使用默认值 1.0')
+        except ValueError:
+            logging.warning('配置文件中 delay_multiplier 不是合法的浮点数，将使用默认值 1.0')
             config['delay_multiplier'] = 1.0
-        # day_to_start_on 默认为 1
-        try:
-            config['day_to_start_on'] = int(config.get('day_to_start_on', 1))
-        except (ValueError, TypeError):
-            logging.warning('配置文件中 day_to_start_on 不合法，将使用默认值 1')
-            config['day_to_start_on'] = 1
+        except TypeError:
+            logging.info('配置文件中未设置 delay_multiplier，将使用默认值 1.0')
+            config['delay_multiplier'] = 1.0
+        # 便携版特有默认配置
+        config['browser'] = 'Chrome'
+        config['driver_path'] = r'.\chromedriver.exe'
+        config['mode'] = 'video'
+        config['options'] = '--mute-audio'
+        config['day_to_start_on'] = 1
         logging.info('成功读取到配置文件')
     return config
 
@@ -69,11 +64,12 @@ class AutoBase(ABC):
         self.token = self.login()
         self.finish_days_list()
 
-    def init_driver(self) -> webdriver.Remote:
+    def init_driver(self) -> webdriver.Edge:
         browser = self.config['browser']
 
         options = getattr(webdriver, browser.lower()).options.Options()
         options.add_argument(self.config['options'])
+        options.binary_location = r'.\chrome-win64\chrome.exe'
         driver = getattr(webdriver, browser)(
             service=getattr(webdriver, browser.lower()).service.Service(self.config['driver_path']),
             options=options
@@ -93,7 +89,7 @@ class AutoBase(ABC):
         self.driver.find_element(By.ID, 'login__password_password').send_keys(self.config['password'])
         self.driver.find_element(By.CLASS_NAME, 'ant-btn-block').submit()
         # 等待一段时间，确保页面加载完成并生成 token
-        time.sleep(3 * self.config.get('delay_multiplier', 1.0))
+        time.sleep(3 * self.config.get('delay_multiplier'))
         # 获取所有 cookie
         cookies = self.driver.get_cookies()
         token = None
@@ -118,26 +114,25 @@ class AutoBase(ABC):
         :param btn: 要点击的按钮
         """
         self.click(btn)
-        time.sleep(1 * self.config.get('delay_multiplier', 1.0))  # 给新页面反应一会
+        time.sleep(1 * self.config.get('delay_multiplier'))  # 给新页面反应一会
         # 切换到当前页面
         handles = self.driver.window_handles
-        self.driver.switch_to.window(handles[-1])
-        time.sleep(3 * self.config.get('delay_multiplier', 1.0))
+        self.driver.switch_to.window(handles[1])
+        time.sleep(3 * self.config.get('delay_multiplier'))
 
     def close_and_switch(self) -> None:
         """关闭当前页面并返回到首页"""
         handles = self.driver.window_handles
         self.driver.close()
         self.driver.switch_to.window(handles[0])
-        time.sleep(1 * self.config.get('delay_multiplier', 1.0))
+        time.sleep(1 * self.config.get('delay_multiplier'))
 
     def finish_days_list(self) -> None:
         """完成所有天"""
-        time.sleep(5 * self.config.get('delay_multiplier', 1.0))
+        time.sleep(5 * self.config.get('delay_multiplier'))
         days = self.driver.find_elements(By.CSS_SELECTOR, 'li[data-active="true"], li[data-active="false"]')
         logging.info(f'一共有 {len(days)} 天的任务')
-        start = max(self.config.get('day_to_start_on', 1) - 1, 0)
-        for i in range(start, len(days)):
+        for i in range(self.config['day_to_start_on'] - 1, len(days)):
             logging.info(f'================ 第 {i + 1} / {len(days)} 天 ================')
             self.finish_a_day(days[i])
 
