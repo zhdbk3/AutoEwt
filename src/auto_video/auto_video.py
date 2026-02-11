@@ -66,14 +66,21 @@ class AutoVideo(AutoBase):
             # 老师敲黑板，帮你暂停一下
             # 看看你在不在认真听课~
             els: list[WebElement] = self.driver.find_elements(
-                By.XPATH, "//*[contains(text(), '点击通过检查') or contains(text(), 'A')]"
+                By.XPATH, "//*[contains(text(), '点击通过检查') or contains(text(), '跳过')]"
             )
             els = [e for e in els if e.is_displayed()]
             for e in els:
                 self.click(e)
-                logging.info('点击了检查点')
+                logging.info('点击了检查点或答题点')
 
             time.sleep(1 * self.config.get('delay_multiplier'))
+            els: list[WebElement] = self.driver.find_elements(
+                By.CLASS_NAME, 'vjs-big-play-button'
+            )
+            els = [e for e in els if e.is_displayed()]
+            for e in els:
+                self.driver.find_element(By.CLASS_NAME, 'vjs-big-play-button').click()
+                logging.info('手动开始播放视频')
 
         logging.info('好诶~完成啦~')
 
