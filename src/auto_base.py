@@ -49,7 +49,7 @@ def read_config() -> dict:
         config['browser'] = 'Chrome'
         config['driver_path'] = r'.\chromedriver.exe'
         config['mode'] = 'video'
-        config['options'] = '--mute-audio'
+        config['options'] = '--mute-audio --headless'
         config['day_to_start_on'] = 1
         logging.info('成功读取到配置文件')
     return config
