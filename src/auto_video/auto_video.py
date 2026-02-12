@@ -56,17 +56,16 @@ class AutoVideo(AutoBase):
         self.click_and_switch(btn)
         try:
             video = self.driver.find_element(By.TAG_NAME, 'video')
-            duration = self.driver.execute_script("return arguments[0].duration", video)
-            logging.info(f"当前视频总时长: {int(duration)} 秒")
+            logging.info(f"正在尝试以方式1播放视频")
         except:
-            logging.error(f"网页未自动播放，将为你手动播放")
+            pass
 
 
         # 有时需要手动点播放
         try:
             time.sleep(3 * self.config.get('delay_multiplier'))
             self.driver.find_element(By.CLASS_NAME, 'vjs-big-play-button').click()
-            logging.info('手动开始播放视频')
+            logging.info('正在尝试以方式2播放视频')
         except:
             pass
 
@@ -98,8 +97,12 @@ class AutoVideo(AutoBase):
             )
             els = [e for e in els if e.is_displayed()]
             for e in els:
-                self.driver.find_element(By.CLASS_NAME, 'vjs-big-play-button').click()
-                logging.info('手动开始播放视频')
+                try:
+                    self.driver.find_element(By.CLASS_NAME, 'vjs-big-play-button').click()
+                    logging.info('正在尝试以方式2重新播放视频')
+                except:
+                    logging.error(f"呜...软件出现问题，请报告bug")
+
 
         logging.info('好诶~完成啦~')
 
