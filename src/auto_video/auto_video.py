@@ -11,7 +11,6 @@ from tqdm import tqdm
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
 
-
 from auto_base import AutoBase
 
 
@@ -54,13 +53,10 @@ class AutoVideo(AutoBase):
         :return: None
         """
         self.click_and_switch(btn)
-        try:
-            video = self.driver.find_element(By.TAG_NAME, 'video')
-            duration = self.driver.execute_script("return arguments[0].duration", video)
-            logging.info(f"当前视频总时长: {int(duration)} 秒")
-        except:
-            logging.error(f"网页未自动播放，将为你手动播放")
 
+        video = self.driver.find_element(By.TAG_NAME, 'video')
+        duration = self.driver.execute_script("return arguments[0].duration", video)
+        logging.info(f"当前视频总时长: {int(duration)} 秒")
 
         # 有时需要手动点播放
         try:
@@ -70,37 +66,47 @@ class AutoVideo(AutoBase):
         except:
             pass
 
-        while not video.get_attribute('ended'):
-            # 老师敲黑板，帮你暂停一下
-            # 看看你在不在认真听课~
-            els: list[WebElement] = self.driver.find_elements(
-                By.XPATH, "//*[contains(text(), '点击通过检查') or contains(text(), '跳过')]"
-            )
-            els = [e for e in els if e.is_displayed()]
-            for e in els:
-                self.click(e)
-                logging.info('点击了检查点或答题点')
-            try:
-                current_time = self.driver.execute_script("return arguments[0].currentTime", video)
-            except:
-                current_time = self.driver.execute_script(
-                    "return videojs('vjs_video_3').currentTime()"
-                )
-            try:
-                duration = self.driver.execute_script("return arguments[0].duration", video)
-                with tqdm(total=duration, desc='播放进度', leave=True, ncols=100, unit='秒', unit_scale=True , bar_format='{l_bar}{bar}| {n_fmt}秒/{total_fmt}秒') as pbar:
-                        pbar.update(current_time)
-            except:
-                pass
-            time.sleep(1 * self.config.get('delay_multiplier'))
-            els: list[WebElement] = self.driver.find_elements(
-                By.CLASS_NAME, 'vjs-big-play-button'
-            )
-            els = [e for e in els if e.is_displayed()]
-            for e in els:
-                self.driver.find_element(By.CLASS_NAME, 'vjs-big-play-button').click()
-                logging.info('手动开始播放视频')
+        with tqdm(total=duration, desc='播放进度', leave=True, ncols=100, unit='秒', unit_scale=True,
+                  bar_format='{l_bar}{bar}| {n_fmt}秒/{total_fmt}秒') as pbar:
+            while not video.get_attribute('ended'):
+                # 更新进度条
+                try:
+                    current_time = self.driver.execute_script("return arguments[0].currentTime", video)
+                except:
+                    current_time = self.driver.execute_script(
+                        "return videojs('vjs_video_3').currentTime()"
+                    )
+                pbar.n = current_time
+                pbar.refresh()
 
-        logging.info('好诶~完成啦~')
+                # 老师敲黑板，帮你暂停一下
+                # 看看你在不在认真听课~
+                els: list[WebElement] = self.driver.find_elements(
+                    By.XPATH, "//*[contains(text(), '点击通过检查') or contains(text(), '跳过')]"
+                )
+                els = [e for e in els if e.is_displayed()]
+                for e in els:
+                    self.click(e)
+                    logging.info('点击了检查点或答题点')
+
+                time.sleep(1 * self.config.get('delay_multiplier'))
+
+                # 防止意外暂停
+                self._resume_if_paused(video)
+
+        logging.info('好诶~ 完成啦~')
 
         self.close_and_switch()
+
+    def _resume_if_paused(self, video: WebElement) -> None:
+        """
+        检查视频是否被暂停，如果暂停则恢复播放
+        https://github.com/zhdbk3/AutoEwt/pull/12/changes/46ac6a7e68f0724df552be6081b241e2f09173c7#diff-7e8f19105f96cbaa19843e7461b4b68b16d6cfedf1629ca0fc37772a4bb3936dR193-R203
+        """
+        try:
+            paused = self.driver.execute_script('return arguments[0].paused;', video)
+            if paused:
+                self.driver.execute_script('arguments[0].play();', video)
+                logging.info('视频被暂停，已恢复播放')
+        except:
+            pass
