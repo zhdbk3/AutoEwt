@@ -5,8 +5,9 @@
 import time
 import logging
 import traceback
+import warnings
+from tqdm import tqdm, TqdmWarning
 
-from tqdm import tqdm
 
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
@@ -14,6 +15,7 @@ from selenium.webdriver.common.by import By
 
 from auto_base import AutoBase
 
+warnings.filterwarnings('ignore', category=TqdmWarning)
 
 class AutoVideo(AutoBase):
     def finish_a_day(self, day: WebElement) -> None:
@@ -72,10 +74,7 @@ class AutoVideo(AutoBase):
 
         try:
             duration = self.driver.execute_script("return arguments[0].duration", video)
-            pbar = tqdm(total=duration, desc='播放进度', ncols=100, unit_scale=True,bar_format='{l_bar}{bar}| {n_fmt}秒/{total_fmt}秒')
-            current_time_start = self.driver.execute_script("return arguments[0].currentTime", video)
-            pbar.update(current_time_start)
-
+            pbar = tqdm(total=duration, desc='播放进度', ncols=100, unit_scale=True , bar_format='{l_bar}{bar}| {n_fmt}秒/{total_fmt}秒')
         except:
             pass
 
@@ -89,18 +88,21 @@ class AutoVideo(AutoBase):
             els = [e for e in els if e.is_displayed()]
             for e in els:
                 self.click(e)
+                pbar.close()
                 logging.info('点击了检查点或答题点')
+                pbar = tqdm(total=duration, desc='播放进度', ncols=100, unit_scale=True,bar_format='{l_bar}{bar}| {n_fmt}秒/{total_fmt}秒')
+
             try:
                 current_time = self.driver.execute_script("return arguments[0].currentTime", video)
-                pbar.update(current_time-current_time_start)
-                current_time_start = current_time
+                pbar.n = current_time
+                pbar.refresh()
             except:
                 try:
                     current_time = self.driver.execute_script(
                         "return videojs('vjs_video_3').currentTime()"
                     )
-                    pbar.update(current_time - current_time_start)
-                    current_time_start = current_time
+                    pbar.n = current_time
+                    pbar.refresh()
                 except:
                     pass
             time.sleep(1 * self.config.get('delay_multiplier'))
@@ -111,10 +113,14 @@ class AutoVideo(AutoBase):
             for e in els:
                 try:
                     self.driver.find_element(By.CLASS_NAME, 'vjs-big-play-button').click()
+                    pbar.close()
                     logging.info('正在尝试以方式2重新播放视频')
                 except:
+                    pbar.close()
                     logging.error(f"呜...软件出现问题，请报告bug")
 
+        pbar.n = duration
+        pbar.refresh()
         pbar.close()
         logging.info('好诶~完成啦~')
 
