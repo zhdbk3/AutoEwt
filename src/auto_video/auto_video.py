@@ -69,6 +69,17 @@ class AutoVideo(AutoBase):
         except:
             pass
 
+
+        try:
+            duration = self.driver.execute_script("return arguments[0].duration", video)
+            pbar = tqdm(total=duration, desc='播放进度', ncols=100, unit_scale=True,bar_format='{l_bar}{bar}| {n_fmt}秒/{total_fmt}秒')
+            current_time_start = self.driver.execute_script("return arguments[0].currentTime", video)
+            pbar.update(current_time_start)
+
+        except:
+            pass
+
+
         while not video.get_attribute('ended'):
             # 老师敲黑板，帮你暂停一下
             # 看看你在不在认真听课~
@@ -81,16 +92,17 @@ class AutoVideo(AutoBase):
                 logging.info('点击了检查点或答题点')
             try:
                 current_time = self.driver.execute_script("return arguments[0].currentTime", video)
+                pbar.update(current_time-current_time_start)
+                current_time_start = current_time
             except:
-                current_time = self.driver.execute_script(
-                    "return videojs('vjs_video_3').currentTime()"
-                )
-            try:
-                duration = self.driver.execute_script("return arguments[0].duration", video)
-                with tqdm(total=duration, desc='播放进度', leave=True, ncols=100, unit='秒', unit_scale=True , bar_format='{l_bar}{bar}| {n_fmt}秒/{total_fmt}秒') as pbar:
-                        pbar.update(current_time)
-            except:
-                pass
+                try:
+                    current_time = self.driver.execute_script(
+                        "return videojs('vjs_video_3').currentTime()"
+                    )
+                    pbar.update(current_time - current_time_start)
+                    current_time_start = current_time
+                except:
+                    pass
             time.sleep(1 * self.config.get('delay_multiplier'))
             els: list[WebElement] = self.driver.find_elements(
                 By.CLASS_NAME, 'vjs-big-play-button'
@@ -103,7 +115,7 @@ class AutoVideo(AutoBase):
                 except:
                     logging.error(f"呜...软件出现问题，请报告bug")
 
-
+        pbar.close()
         logging.info('好诶~完成啦~')
 
         self.close_and_switch()
