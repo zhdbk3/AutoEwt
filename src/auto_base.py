@@ -5,6 +5,7 @@
 import os
 import logging
 import time
+import subprocess
 from abc import ABC, abstractmethod
 from functools import cache
 
@@ -49,7 +50,7 @@ def read_config() -> dict:
         config['browser'] = 'Chrome'
         config['driver_path'] = r'.\chromedriver.exe'
         config['mode'] = 'video'
-        config['options'] = '--mute-audio --headless'
+        config['options'] = '--mute-audio'
         config['day_to_start_on'] = 1
         logging.info('成功读取到配置文件')
     return config
@@ -66,14 +67,45 @@ class AutoBase(ABC):
 
     def init_driver(self) -> webdriver.Edge:
         browser = self.config['browser']
-
         options = getattr(webdriver, browser.lower()).options.Options()
         options.add_argument(self.config['options'])
+        #Chrome相对路径
         options.binary_location = r'.\chrome-win64\chrome.exe'
-        driver = getattr(webdriver, browser)(
-            service=getattr(webdriver, browser.lower()).service.Service(self.config['driver_path']),
-            options=options
+        #进一步把Chromedriver与Chrome输出丢进垃圾桶里面
+        service = getattr(webdriver, browser.lower()).service.Service(
+            self.config['driver_path']
         )
+
+        # ★ 劫持 Popen，强制 chromedriver 进程 stdout/stderr 全部进 NUL，
+        #   并设置 CREATE_NO_WINDOW 阻止子进程继承控制台
+        _OrigPopen = subprocess.Popen
+
+        class _SilentPopen(_OrigPopen):
+            def __init__(self, *args, **kwargs):
+                kwargs['stdout'] = subprocess.DEVNULL
+                kwargs['stderr'] = subprocess.DEVNULL
+                kwargs['creationflags'] = (
+                        kwargs.get('creationflags', 0) | subprocess.CREATE_NO_WINDOW
+                )
+                super().__init__(*args, **kwargs)
+
+        subprocess.Popen = _SilentPopen
+        try:
+            driver = getattr(webdriver, browser)(
+                service=service,
+                options=options
+            )
+        finally:
+            subprocess.Popen = _OrigPopen
+
+        #service = getattr(webdriver, browser.lower()).service.Service(
+            #self.config['driver_path'],
+            #log_output=subprocess.DEVNULL,
+        #)
+        #driver = getattr(webdriver, browser)(
+            #service=service,
+            #options=options
+        #)
         driver.maximize_window()
         driver.get(self.config['list_url'])
         driver.implicitly_wait(3)
