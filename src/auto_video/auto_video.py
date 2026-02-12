@@ -6,8 +6,11 @@ import time
 import logging
 import traceback
 
-from selenium.webdriver.common.by import By
+from tqdm import tqdm
+
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.common.by import By
+
 
 from auto_base import AutoBase
 
@@ -51,8 +54,13 @@ class AutoVideo(AutoBase):
         :return: None
         """
         self.click_and_switch(btn)
+        try:
+            video = self.driver.find_element(By.TAG_NAME, 'video')
+            duration = self.driver.execute_script("return arguments[0].duration", video)
+            logging.info(f"当前视频总时长: {int(duration)} 秒")
+        except:
+            logging.error(f"网页未自动播放，将为你手动播放")
 
-        video = self.driver.find_element(By.TAG_NAME, 'video')
 
         # 有时需要手动点播放
         try:
@@ -72,7 +80,18 @@ class AutoVideo(AutoBase):
             for e in els:
                 self.click(e)
                 logging.info('点击了检查点或答题点')
-
+            try:
+                current_time = self.driver.execute_script("return arguments[0].currentTime", video)
+            except:
+                current_time = self.driver.execute_script(
+                    "return videojs('vjs_video_3').currentTime()"
+                )
+            try:
+                duration = self.driver.execute_script("return arguments[0].duration", video)
+                with tqdm(total=duration, desc='播放进度', leave=True, ncols=100, unit='秒', unit_scale=True , bar_format='{l_bar}{bar}| {n_fmt}秒/{total_fmt}秒') as pbar:
+                        pbar.update(current_time)
+            except:
+                pass
             time.sleep(1 * self.config.get('delay_multiplier'))
             els: list[WebElement] = self.driver.find_elements(
                 By.CLASS_NAME, 'vjs-big-play-button'
