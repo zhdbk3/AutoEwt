@@ -78,6 +78,7 @@ class AutoVideo(AutoBase):
         :param btn: “学”按钮
         :return: None
         """
+
         self.click_and_switch(btn)
         try:
             video = self.driver.find_element(By.TAG_NAME, 'video')
@@ -96,8 +97,19 @@ class AutoVideo(AutoBase):
 
 
         try:
+            # 方案3：从页面上已显示的时长文本解析（最简单可靠）
+            duration_text = self.driver.find_element(
+                By.CSS_SELECTOR, ".vjs-duration-display"
+            ).get_attribute("textContent")  # 返回 "18:57"
+
+            # 转换为秒数
+            parts = duration_text.split(":")
+            duration = int(parts[0]) * 60 + int(parts[1])  # 1137 秒
+            pbar = tqdm(total=duration, desc='播放进度', ncols=100, unit_scale=True, bar_format='{l_bar}{bar}| {n_fmt}秒/{total_fmt}秒')
+            """
             duration = self.driver.execute_script("return arguments[0].duration", video)
-            pbar = tqdm(total=duration, desc='播放进度', ncols=100, unit_scale=True , bar_format='{l_bar}{bar}| {n_fmt}秒/{total_fmt}秒')
+            
+            """
         except:
             pass
 
@@ -105,7 +117,6 @@ class AutoVideo(AutoBase):
         while not video.get_attribute('ended'):
             # 老师敲黑板，帮你暂停一下
             # 看看你在不在认真听课~
-            duration = self.driver.execute_script("return arguments[0].duration", video)
             els: list[WebElement] = self.driver.find_elements(
                 By.XPATH, "//*[contains(text(), '点击通过检查') or contains(text(), '跳过')]"
             )
@@ -117,7 +128,14 @@ class AutoVideo(AutoBase):
                 pbar = tqdm(total=duration, desc='播放进度', ncols=100, unit_scale=True,bar_format='{l_bar}{bar}| {n_fmt}秒/{total_fmt}秒')
 
             try:
-                current_time = self.driver.execute_script("return arguments[0].currentTime", video)
+                #从页面上已显示的时长文本解析（最简单可靠）
+                current_time_text = self.driver.find_element(
+                    By.CSS_SELECTOR, ".vjs-current-time-display"
+                ).get_attribute("textContent")
+                # 转换为秒数
+                parts_current = current_time_text.split(":")
+                current_time = int(parts_current[0]) * 60 + int(parts_current[1])
+                #current_time = self.driver.execute_script("return arguments[0].currentTime", video)
                 pbar.n = current_time
                 pbar.refresh()
             except:
