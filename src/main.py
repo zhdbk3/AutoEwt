@@ -38,6 +38,7 @@ while True:
         logging.info('开源项目：https://github.com/zhdbk3/AutoEwt')
         logging.info('如您是通过购买方式获得的本软件，请退款并举报卖家')
         logging.info('使用即视为同意项目README.md中的相关条款')
+        logging.info('本软件不能处理练习和试卷，请自行处理上述内容')
         match read_config()['mode']:
             case 'video':
                 auto = AutoVideo()
