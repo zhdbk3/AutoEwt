@@ -148,7 +148,7 @@ class AutoVideo(AutoBase):
             time.sleep(1 * self.config.get('delay_multiplier'))
             
             # zhdbk3的防止意外暂停
-                self._resume_if_paused(video)
+            self._resume_if_paused(video)
               
             els: list[WebElement] = self.driver.find_elements(
                 By.CLASS_NAME, 'vjs-big-play-button'
@@ -163,12 +163,12 @@ class AutoVideo(AutoBase):
                     pbar.close()
                     logging.error(f"呜...软件出现问题，请报告bug")
 
-        pbar.n = duration
-        pbar.refresh()
-        pbar.close()
-        logging.info('好诶~完成啦~')
+            pbar.n = duration
+            pbar.refresh()
+            pbar.close()
+            logging.info('好诶~完成啦~')
 
-        self.close_and_switch()
+            self.close_and_switch()
         
     def finish_a_click(self, btn: WebElement):
         self.click_and_switch(btn)
