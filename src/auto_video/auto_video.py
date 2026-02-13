@@ -5,14 +5,16 @@
 import time
 import logging
 import traceback
+import warnings
+from tqdm import tqdm, TqdmWarning
 
-from tqdm import tqdm
 
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
 
 from auto_base import AutoBase
 
+warnings.filterwarnings('ignore', category=TqdmWarning)
 
 class AutoVideo(AutoBase):
     def finish_a_day(self, day: WebElement) -> None:
@@ -28,12 +30,35 @@ class AutoVideo(AutoBase):
             "//div[contains(@class, 'btn-AoqsA') "
             "and .//text()[contains(., '学')] "
             "and not(.//text()[contains(., '已学完')])]")
+        btns_one_click = self.driver.find_elements(
+            By.XPATH,
+            "//div[contains(@class, 'btn-AoqsA') "
+            "and (.//text()[contains(., '去收听')] "
+            " or .//text()[contains(., '去查看')]) "
+            "and not(.//text()[contains(., '已学完')])]")
         unit = '节课'
+        unit_one_click = "个"
         logging.info(f'该天还剩 {len(btns)} {unit}')
+        logging.info(f'该天还剩 {len(btns_one_click)} {unit_one_click} 非视频课程')
         for i in range(len(btns)):
             logging.info(f'第 {i + 1} / {len(btns)} {unit}')
             try:
                 self.finish_a_lesson(btns[i])
+            except:
+                # 似乎现在不存在这种特殊情况了，但这些逻辑还是留着吧，防止看一半程序暴毙
+                # # 出现特殊情况，则跳过，不影响其他课程的完成
+                # # 并不是所有课都是视频，还有 FM、试卷等
+                # # 对于 FM，只要点进去了就是完成
+                # # 对于试卷，留给人来处理
+                logging.error(traceback.format_exc())
+                logging.warning('该课已跳过')
+                logging.warning('如果这是视频课，请报告 bug')
+                # 关闭页面，返回首页
+                self.close_and_switch()
+        for i in range(len(btns_one_click)):
+            logging.info(f'第 {i + 1} / {len(btns_one_click)} {unit_one_click} 非视频课程')
+            try:
+                self.finish_a_click(btns_one_click[i])
             except:
                 # 似乎现在不存在这种特殊情况了，但这些逻辑还是留着吧，防止看一半程序暴毙
                 # # 出现特殊情况，则跳过，不影响其他课程的完成
@@ -52,6 +77,7 @@ class AutoVideo(AutoBase):
         :param btn: “学”按钮
         :return: None
         """
+
         self.click_and_switch(btn)
 
         video = self.driver.find_element(By.TAG_NAME, 'video')
@@ -66,38 +92,89 @@ class AutoVideo(AutoBase):
         except:
             pass
 
-        with tqdm(total=duration, desc='播放进度', leave=True, ncols=100, unit='秒', unit_scale=True,
-                  bar_format='{l_bar}{bar}| {n_fmt}秒/{total_fmt}秒') as pbar:
-            while not video.get_attribute('ended'):
-                # 更新进度条
+
+
+        try:
+            # 方案3：从页面上已显示的时长文本解析（最简单可靠）
+            duration_text = self.driver.find_element(
+                By.CSS_SELECTOR, ".vjs-duration-display"
+            ).get_attribute("textContent")  # 返回 "18:57"
+
+            # 转换为秒数
+            parts = duration_text.split(":")
+            duration = int(parts[0]) * 60 + int(parts[1])  # 1137 秒
+            pbar = tqdm(total=duration, desc='播放进度', ncols=100, unit_scale=True, bar_format='{l_bar}{bar}| {n_fmt}秒/{total_fmt}秒')
+            """
+            duration = self.driver.execute_script("return arguments[0].duration", video)
+            
+            """
+        except:
+            pass
+
+
+        while not video.get_attribute('ended'):
+            # 老师敲黑板，帮你暂停一下
+            # 看看你在不在认真听课~
+            els: list[WebElement] = self.driver.find_elements(
+                By.XPATH, "//*[contains(text(), '点击通过检查') or contains(text(), '跳过')]"
+            )
+            els = [e for e in els if e.is_displayed()]
+            for e in els:
+                self.click(e)
+                pbar.close()
+                logging.info('点击了检查点或答题点')
+                pbar = tqdm(total=duration, desc='播放进度', ncols=100, unit_scale=True,bar_format='{l_bar}{bar}| {n_fmt}秒/{total_fmt}秒')
+
+            try:
+                #从页面上已显示的时长文本解析（最简单可靠）
+                current_time_text = self.driver.find_element(
+                    By.CSS_SELECTOR, ".vjs-current-time-display"
+                ).get_attribute("textContent")
+                # 转换为秒数
+                parts_current = current_time_text.split(":")
+                current_time = int(parts_current[0]) * 60 + int(parts_current[1])
+                #current_time = self.driver.execute_script("return arguments[0].currentTime", video)
+                pbar.n = current_time
+                pbar.refresh()
+            except:
                 try:
-                    current_time = self.driver.execute_script("return arguments[0].currentTime", video)
-                except:
                     current_time = self.driver.execute_script(
                         "return videojs('vjs_video_3').currentTime()"
                     )
-                pbar.n = current_time
-                pbar.refresh()
-
-                # 老师敲黑板，帮你暂停一下
-                # 看看你在不在认真听课~
-                els: list[WebElement] = self.driver.find_elements(
-                    By.XPATH, "//*[contains(text(), '点击通过检查') or contains(text(), '跳过')]"
-                )
-                els = [e for e in els if e.is_displayed()]
-                for e in els:
-                    self.click(e)
-                    logging.info('点击了检查点或答题点')
-
-                time.sleep(1 * self.config.get('delay_multiplier'))
-
-                # 防止意外暂停
+                    pbar.n = current_time
+                    pbar.refresh()
+                except:
+                    pass
+            time.sleep(1 * self.config.get('delay_multiplier'))
+            
+            # zhdbk3的防止意外暂停
                 self._resume_if_paused(video)
+              
+            els: list[WebElement] = self.driver.find_elements(
+                By.CLASS_NAME, 'vjs-big-play-button'
+            )
+            els = [e for e in els if e.is_displayed()]
+            for e in els:
+                try:
+                    self.driver.find_element(By.CLASS_NAME, 'vjs-big-play-button').click()
+                    pbar.close()
+                    logging.info('正在尝试以方式2重新播放视频')
+                except:
+                    pbar.close()
+                    logging.error(f"呜...软件出现问题，请报告bug")
 
-        logging.info('好诶~ 完成啦~')
+        pbar.n = duration
+        pbar.refresh()
+        pbar.close()
+        logging.info('好诶~完成啦~')
 
         self.close_and_switch()
-
+        
+    def finish_a_click(self, btn: WebElement):
+        self.click_and_switch(btn)
+        logging.info('好诶~完成啦~')
+        self.close_and_switch()
+        
     def _resume_if_paused(self, video: WebElement) -> None:
         """
         检查视频是否被暂停，如果暂停则恢复播放
@@ -110,3 +187,13 @@ class AutoVideo(AutoBase):
                 logging.info('视频被暂停，已恢复播放')
         except:
             pass
+
+
+
+
+                
+
+ 
+
+
+
