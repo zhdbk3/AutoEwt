@@ -105,6 +105,7 @@ class AutoVideo(AutoBase):
         while not video.get_attribute('ended'):
             # 老师敲黑板，帮你暂停一下
             # 看看你在不在认真听课~
+            duration = self.driver.execute_script("return arguments[0].duration", video)
             els: list[WebElement] = self.driver.find_elements(
                 By.XPATH, "//*[contains(text(), '点击通过检查') or contains(text(), '跳过')]"
             )
