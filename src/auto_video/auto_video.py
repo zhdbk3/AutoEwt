@@ -31,12 +31,35 @@ class AutoVideo(AutoBase):
             "//div[contains(@class, 'btn-AoqsA') "
             "and .//text()[contains(., '学')] "
             "and not(.//text()[contains(., '已学完')])]")
+        btns_one_click = self.driver.find_elements(
+            By.XPATH,
+            "//div[contains(@class, 'btn-AoqsA') "
+            "and (.//text()[contains(., '去收听')] "
+            " or .//text()[contains(., '去查看')]) "
+            "and not(.//text()[contains(., '已学完')])]")
         unit = '节课'
+        unit_one_click = "个"
         logging.info(f'该天还剩 {len(btns)} {unit}')
+        logging.info(f'该天还剩 {len(btns_one_click)} {unit_one_click} 非视频课程')
         for i in range(len(btns)):
             logging.info(f'第 {i + 1} / {len(btns)} {unit}')
             try:
                 self.finish_a_lesson(btns[i])
+            except:
+                # 似乎现在不存在这种特殊情况了，但这些逻辑还是留着吧，防止看一半程序暴毙
+                # # 出现特殊情况，则跳过，不影响其他课程的完成
+                # # 并不是所有课都是视频，还有 FM、试卷等
+                # # 对于 FM，只要点进去了就是完成
+                # # 对于试卷，留给人来处理
+                logging.error(traceback.format_exc())
+                logging.warning('该课已跳过')
+                logging.warning('如果这是视频课，请报告 bug')
+                # 关闭页面，返回首页
+                self.close_and_switch()
+        for i in range(len(btns_one_click)):
+            logging.info(f'第 {i + 1} / {len(btns_one_click)} {unit_one_click} 非视频课程')
+            try:
+                self.finish_a_click(btns_one_click[i])
             except:
                 # 似乎现在不存在这种特殊情况了，但这些逻辑还是留着吧，防止看一半程序暴毙
                 # # 出现特殊情况，则跳过，不影响其他课程的完成
@@ -125,3 +148,9 @@ class AutoVideo(AutoBase):
         logging.info('好诶~完成啦~')
 
         self.close_and_switch()
+    def finish_a_click(self, btn: WebElement):
+        self.click_and_switch(btn)
+        logging.info('好诶~完成啦~')
+        self.close_and_switch()
+
+
