@@ -19,12 +19,9 @@ class TqdmLoggingHandler(logging.StreamHandler):
     """通过 tqdm.write() 输出日志，避免与进度条混在同一行"""
 
     def emit(self, record):
-        try:
-            msg = self.format(record)
-            tqdm.write(msg ,file=sys.stderr)
-            self.flush()
-        except Exception:
-            self.handleError(record)
+        msg = self.format(record)
+        tqdm.write(msg ,file=sys.stderr)
+        self.flush()
 
 
 # 如果不存在 log 文件夹，则创建
