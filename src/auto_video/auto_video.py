@@ -99,75 +99,6 @@ class AutoVideo(AutoBase):
                         bar_format='{l_bar}{bar}| {n_fmt}秒/{total_fmt}秒')
 
 
-    def _reenter_video(self, max_wait=15):                                        # <-- FIX: 新增，重新进入视频页面
-        """                                                                       
-        当视频元素丢失时，尝试重新进入当前视频                                        
-        1. 关闭当前页面回到列表页                                                    
-        2. 重新查找按钮并点击进入                                                    
-        3. 等待视频加载                                                             
-        :param max_wait: 等待视频元素出现的最大秒数                                   
-        :return: (video, btn) 新的视频元素和按钮，失败则抛出异常                       
-        """                                                                       # <-- FIX
-        logging.warning('视频元素丢失，尝试重新进入视频页面')                           # <-- FIX
-                                                                                  # <-- FIX
-        # 1. 尝试关闭当前页面，回到列表页                                             # <-- FIX
-        try:                                                                      # <-- FIX
-            self.close_and_switch()                                               # <-- FIX
-        except Exception:                                                         # <-- FIX
-            logging.warning('关闭页面失败，尝试继续')                                 # <-- FIX
-                                                                                  # <-- FIX
-        time.sleep(2 * self.config.get('delay_multiplier'))                       # <-- FIX
-                                                                                  # <-- FIX
-        # 2. 重新查找按钮列表，点击第一个未完成的课程                                  # <-- FIX
-        btns = self.driver.find_elements(
-            By.XPATH,
-            "//div[contains(@class, 'btn-AoqsA') "
-            "and .//text()[contains(., '学')] "
-            "and not(.//text()[contains(., '已学完')])]")               # <-- FIX
-        if not btns:                                                              # <-- FIX
-            raise Exception('重新进入失败：找不到任何未完成的课程按钮')                  # <-- FIX
-                                                                                  # <-- FIX
-        btn = btns[0]  # 取第一个未完成的（就是当前正在处理的）                        # <-- FIX
-        self.click_and_switch(btn)                                                # <-- FIX
-                                                                                  # <-- FIX
-        # 3. 等待视频元素出现                                                        # <-- FIX
-        video = None                                                              # <-- FIX
-        for wait in range(max_wait):                                              # <-- FIX
-            try:                                                                  # <-- FIX
-                video = self.driver.find_element(By.TAG_NAME, 'video')            # <-- FIX
-                break                                                             # <-- FIX
-            except Exception:                                                     # <-- FIX
-                time.sleep(1)                                                     # <-- FIX
-                                                                                  # <-- FIX
-        if video is None:                                                         # <-- FIX
-            raise Exception(f'重新进入失败：等待 {max_wait} 秒后仍找不到视频元素')       # <-- FIX
-                                                                                  # <-- FIX
-        # 4. 尝试点击播放                                                           # <-- FIX
-        time.sleep(2 * self.config.get('delay_multiplier'))                       # <-- FIX
-        try:                                                                      # <-- FIX
-            self.driver.find_element(By.CLASS_NAME, 'vjs-big-play-button').click() # <-- FIX
-        except:                                                                   # <-- FIX
-            pass                                                                  # <-- FIX
-                                                                                  # <-- FIX
-        logging.info('成功重新进入视频页面')                                          # <-- FIX
-        return video
-
-    def _check_video_error(self):  # <-- NEW
-        """检查视频播放器是否报错"""  # <-- NEW
-        try:  # <-- NEW
-            error_layer = self.driver.find_elements(  # <-- NEW
-                By.CSS_SELECTOR, ".vjs-error-layer .error-desc"  # <-- NEW
-            )  # <-- NEW
-            for el in error_layer:  # <-- NEW
-                if el.is_displayed():  # <-- NEW
-                    error_text = el.get_attribute("textContent") or ""  # <-- NEW
-                    logging.warning(f'视频播放器报错: {error_text}')  # <-- NEW
-                    return True  # <-- NEW
-            return False  # <-- NEW
-        except Exception:  # <-- NEW
-            return False
-
-
     def finish_a_lesson(self, btn: WebElement, duration=None) -> None:
         """
         完成一节课，应对各种突发情况
@@ -189,58 +120,10 @@ class AutoVideo(AutoBase):
                 ended = False
                 try:  # <-- FIX
                     ended = video.get_attribute('ended')  # <-- FIX
-                except StaleElementReferenceException:  # <-- FIX
-                    logging.warning('视频元素已失效，尝试重新查找')  # <-- FIX
-                    # 先尝试在当前页面重新查找                                        # <-- FIX
-                    try:  # <-- FIX
-                        video = self.driver.find_element(By.TAG_NAME, 'video')  # <-- FIX
-                        ended = video.get_attribute('ended')  # <-- FIX
-                        logging.info('在当前页面重新找到视频元素')  # <-- FIX
-                    except Exception:  # <-- FIX
-                        # 当前页面找不到，尝试重新进入视频                              # <-- FIX
-                        try:  # <-- FIX
-                            video = self._reenter_video(max_wait=20)  # <-- FIX
-                            ended = video.get_attribute('ended')  # <-- FIX
-                            # 重新获取时长                                          # <-- FIX
-                            new_duration = self._get_duration()  # <-- FIX
-                            if new_duration is not None:  # <-- FIX
-                                pbar.total = new_duration  # <-- FIX
-                                duration = new_duration  # <-- FIX
-                                pbar.refresh()  # <-- FIX
-                        except Exception:  # <-- FIX
-                            logging.error('重新进入视频失败，放弃该课')  # <-- FIX
-                            raise  # 向上抛出，让外层处理重启                          # <-- FIX
-                            # <-- FIX
+                except:  # <-- FIX
+                    raise # <-- FIX
                 if ended:  # <-- FIX
                     break
-                if self._check_video_error():  # <-- NEW
-                    logging.warning('视频加载失败，尝试刷新页面重试')  # <-- NEW
-                    try:  # <-- NEW
-                        self.driver.refresh()  # <-- NEW
-                        time.sleep(5 * self.config.get('delay_multiplier'))  # <-- NEW
-                        video = self.driver.find_element(  # <-- NEW
-                            By.TAG_NAME, 'video')  # <-- NEW
-                        try:  # <-- NEW
-                            self.driver.find_element(  # <-- NEW
-                                By.CLASS_NAME,  # <-- NEW
-                                'vjs-big-play-button').click()  # <-- NEW
-                        except:  # <-- NEW
-                            pass  # <-- NEW
-                        # 重新获取时长                                      # <-- NEW
-                        time.sleep(3 * self.config.get('delay_multiplier'))  # <-- NEW
-                        new_duration = self._get_duration()  # <-- NEW
-                        if new_duration is not None:  # <-- NEW
-                            pbar.total = new_duration  # <-- NEW
-                            duration = new_duration  # <-- NEW
-                            pbar.refresh()  # <-- NEW
-                        # 如果刷新后仍然报错，放弃这节课                      # <-- NEW
-                        time.sleep(3 * self.config.get('delay_multiplier'))  # <-- NEW
-                        if self._check_video_error():  # <-- NEW
-                            logging.error('刷新后视频仍然报错，跳过该课')  # <-- NEW
-                            break  # <-- NEW
-                    except Exception:  # <-- NEW
-                        logging.error('刷新页面失败，跳过该课')  # <-- NEW
-                        break  # <-- NEW
 
                 # 老师敲黑板，帮你暂停一下
                 # 看看你在不在认真听课~
@@ -267,7 +150,6 @@ class AutoVideo(AutoBase):
                     # 转换为秒数
                     parts_current = current_time_text.split(":")
                     current_time = int(parts_current[0]) * 60 + int(parts_current[1])
-                    #current_time = self.driver.execute_script("return arguments[0].currentTime", video)
                     pbar.n = current_time
                     pbar.refresh()
                 except:
@@ -320,9 +202,6 @@ class AutoVideo(AutoBase):
 
             ended = video.get_attribute('ended')  # <-- FIX
             if ended:
-                return
-
-            if self._check_video_error():  # <-- NEW
                 return
 
             paused = self.driver.execute_script('return arguments[0].paused;', video)
