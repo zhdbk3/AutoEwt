@@ -7,12 +7,22 @@ import logging
 import time
 import os
 import datetime
-
+import sys
+from tqdm import tqdm
 from selenium.common.exceptions import StaleElementReferenceException
 
 from auto_base import read_config
 from auto_video.auto_video import AutoVideo
 from auto_paper.auto_paper import AutoPaper
+
+class TqdmLoggingHandler(logging.StreamHandler):
+    """通过 tqdm.write() 输出日志，避免与进度条混在同一行"""
+
+    def emit(self, record):
+        msg = self.format(record)
+        tqdm.write(msg ,file=sys.stderr)
+        self.flush()
+
 
 # 如果不存在 log 文件夹，则创建
 if not os.path.exists('log'):
@@ -23,7 +33,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='[%(asctime)s %(levelname)s] %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
-    handlers=[logging.StreamHandler(), logging.FileHandler(f'log/log_{now}.txt', encoding='utf-8')],
+    handlers=[TqdmLoggingHandler(),logging.FileHandler(f'log/log_{now}.txt', encoding='utf-8')],
 )
 
 config = read_config()
