@@ -50,7 +50,7 @@ def read_config() -> dict:
         config['browser'] = 'Chrome'
         config['driver_path'] = r'.\chromedriver.exe'
         config['mode'] = 'video'
-        config['options'] = '--mute-audio --headless'
+        config['options'] = '--mute-audio'
         config['day_to_start_on'] = 1
         logging.info('成功读取到配置文件')
     return config
@@ -119,7 +119,33 @@ class AutoBase(ABC):
         logging.info('登录账号……')
         self.driver.find_element(By.ID, 'login__password_userName').send_keys(self.config['username'])
         self.driver.find_element(By.ID, 'login__password_password').send_keys(self.config['password'])
+        try:
+            # 定位 privacy__agreement 区域内的 checkbox
+            agreement_checkbox = self.driver.find_element(
+                By.CSS_SELECTOR,
+                '.privacy__agreement .ant-checkbox-input'
+            )
+            # 如果尚未勾选，则点击勾选
+            if not agreement_checkbox.is_selected():
+                self.click(agreement_checkbox)
+                logging.info('已自动勾选用户协议')
+            else:
+                logging.info('用户协议已处于勾选状态，跳过')
+        except Exception as e:
+            logging.warning(f'勾选用户协议复选框失败: {e}')
         self.driver.find_element(By.CLASS_NAME, 'ant-btn-block').submit()
+        try:
+            time.sleep(1 * self.config.get('delay_multiplier'))
+            # 查找弹窗中的"同意并继续"按钮
+            agree_btn = self.driver.find_element(
+                By.CSS_SELECTOR,
+                '.privacy__agreement__modal-btn .ant-btn-primary'
+            )
+            self.click(agree_btn)
+            logging.info('已自动点击弹窗中的「同意并继续」按钮')
+        except Exception:
+            logging.info('未出现协议确认弹窗，跳过')
+
         # 等待一段时间，确保页面加载完成并生成 token
         time.sleep(3 * self.config.get('delay_multiplier'))
         # 获取所有 cookie
